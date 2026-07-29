@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Newsletter - Digital Flipbook</title>
+
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1a1a1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <!-- External Open Source Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand-title">School Gazette</div>
+        <div class="header-controls">
+            <button id="btn-toc" title="Table of Contents" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+            <button id="btn-search" title="Search Text" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+            <button id="btn-fullscreen" title="Toggle Fullscreen" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="viewport-stage" id="zoom-stage">
+        <div class="loading-overlay" id="loader">
+            <div class="spinner"></div>
+            <p id="loader-status">Preparing digital publication...</p>
+        </div>
+
+        <div id="flipbook-container" class="flipbook-wrapper">
+            <div id="flipbook"></div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <span id="page-indicator">Page -- of --</span>
+    </footer>
+
+    <div class="modal" id="search-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Search Newsletter</h3>
+                <button class="close-btn" id="close-search">&times;</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Type keyword and press Enter..." />
+            </div>
+            <div class="search-results" id="search-results"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="toc-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Table of Contents</h3>
+                <button class="close-btn" id="close-toc">&times;</button>
+            </div>
+            <ul class="toc-list" id="toc-list"></ul>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                    .catch(err => console.error('ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
