@@ -1,247 +1,292 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const CONFIG = {
-        pdfPath: './pages/document.pdf',
-        pageDimensions: { width: 550, height: 733 },
-        singlePageModeWidthCutoff: 768
-    };
+/**
+ * HEAT WAVES — Digital Publication Platform Engine
+ * Fully Redesigned UI/UX Controller
+ */
 
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Multi-Issue Archive Database Support
+    const ISSUES_DATABASE = [
+        {
+            id: 'august-2026',
+            vol: 'VOL. 04',
+            title: 'The Summer Reflection',
+            subtitle: 'An exploration of student perspectives, contemporary art, and creative discourse.',
+            date: 'August 2026',
+            pdfPath: './pages/document.pdf'
+        },
+        {
+            id: 'september-2026',
+            vol: 'VOL. 05',
+            title: 'Autumn Horizons',
+            subtitle: 'Navigating campus innovations, architecture, and technology.',
+            date: 'September 2026',
+            pdfPath: './pages/september-2026.pdf'
+        }
+    ];
+
+    let currentIssue = ISSUES_DATABASE[0];
     let pageFlip = null;
     let pdfDoc = null;
-    let zoomLevel = 1;
     let textContentCache = [];
 
+    // DOM Elements
+    const landingScreen = document.getElementById('landing-screen');
+    const btnOpenIssue = document.getElementById('btn-open-issue');
     const loader = document.getElementById('loader');
+    const loaderProgress = document.getElementById('loader-progress');
     const loaderStatus = document.getElementById('loader-status');
-    const pageIndicator = document.getElementById('page-indicator');
     const flipbookElem = document.getElementById('flipbook');
-    const zoomStage = document.getElementById('zoom-stage');
+    const pageCurrent = document.getElementById('page-current');
+    const pageTotal = document.getElementById('page-total');
+    const pageScrubber = document.getElementById('page-scrubber');
 
-    initApplication();
+    // Modals
+    const searchModal = document.getElementById('search-modal');
+    const archiveModal = document.getElementById('archive-modal');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const archiveGrid = document.getElementById('archive-grid');
 
-    async function initApplication() {
+    // Initial Setup
+    initLandingPreview();
+    setupEventListeners();
+    buildArchiveUI();
+
+    /**
+     * Pre-renders cover artwork on Landing Screen hero preview
+     */
+    async function initLandingPreview() {
         try {
-            const response = await fetch(CONFIG.pdfPath, { method: 'HEAD' });
-            if (response.ok) {
-                await loadPDF(CONFIG.pdfPath);
-            } else {
-                await loadFallbackImages();
+            pdfDoc = await pdfjsLib.getDocument(currentIssue.pdfPath).promise;
+            const page = await pdfDoc.getPage(1);
+            const canvas = document.getElementById('cover-canvas');
+            const viewport = page.getViewport({ scale: 1.0 });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        } catch (e) {
+            console.warn('Cover preview pre-render failed. Will render upon issue opening.', e);
+        }
+    }
+
+    /**
+     * Transition from Landing Experience to Reader Stage
+     */
+    btnOpenIssue.addEventListener('click', async () => {
+        landingScreen.classList.add('dismissed');
+        await loadPublication(currentIssue.pdfPath);
+    });
+
+    /**
+     * PDF Loading & Page Rendering Engine
+     */
+    async function loadPublication(pdfPath) {
+        loader.style.opacity = '1';
+        loader.style.display = 'flex';
+        updateLoader(10, 'Fetching publication document...');
+
+        try {
+            pdfDoc = await pdfjsLib.getDocument(pdfPath).promise;
+            const totalPages = pdfDoc.numPages;
+            flipbookElem.innerHTML = '';
+            textContentCache = [];
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                
+                const canvas = document.createElement('canvas');
+                pageDiv.appendChild(canvas);
+                flipbookElem.appendChild(pageDiv);
+
+                await renderPage(i, canvas);
+                updateLoader(10 + Math.floor((i / totalPages) * 70), `Rendering page ${i} of ${totalPages}`);
             }
-            setupEventListeners();
-        } catch (error) {
-            await loadFallbackImages();
-            setupEventListeners();
+
+            updateLoader(90, 'Initializing 3D paper physics...');
+            initStPageFlip();
+            cachePDFText(totalPages);
+
+            updateLoader(100, 'Complete');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 600);
+            }, 300);
+
+        } catch (err) {
+            console.error('Failed to load publication PDF:', err);
+            loaderStatus.innerText = 'Unable to load PDF document.';
         }
     }
 
-    async function loadPDF(url) {
-        loaderStatus.innerText = "Loading newsletter PDF...";
-        pdfDoc = await pdfjsLib.getDocument(url).promise;
-        const totalPages = pdfDoc.numPages;
-
-        flipbookElem.innerHTML = '';
-
-        for (let i = 1; i <= totalPages; i++) {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'page';
-            pageDiv.dataset.pageNumber = i;
-            
-            const canvas = document.createElement('canvas');
-            pageDiv.appendChild(canvas);
-            flipbookElem.appendChild(pageDiv);
-
-            await renderPDFPage(i, canvas);
-            loaderStatus.innerText = `Rendered page ${i} of ${totalPages}`;
-        }
-
-        buildFlipbook();
-        cachePDFText(totalPages);
-    }
-
-    async function renderPDFPage(pageNum, canvas) {
+    async function renderPage(pageNum, canvas) {
         const page = await pdfDoc.getPage(pageNum);
         const viewport = page.getViewport({ scale: 1.5 });
         const context = canvas.getContext('2d');
-
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        await page.render({ canvasContext: context, viewport }).promise;
     }
 
-    async function cachePDFText(totalPages) {
-        for (let i = 1; i <= totalPages; i++) {
-            const page = await pdfDoc.getPage(i);
-            const textContent = await page.getTextContent();
-            const textString = textContent.items.map(item => item.str).join(' ');
-            textContentCache.push({ page: i, text: textString });
-        }
-        buildTableOfContents(totalPages);
+    function updateLoader(percentage, text) {
+        loaderProgress.style.width = `${percentage}%`;
+        loaderStatus.innerText = text;
     }
 
-    async function loadFallbackImages() {
-        loaderStatus.innerText = "Loading image pages...";
-        flipbookElem.innerHTML = '';
-        let pageNum = 1;
-        let active = true;
+    /**
+     * StPageFlip Physics Initialization
+     */
+    function initStPageFlip() {
+        if (pageFlip) pageFlip.destroy();
 
-        while (active && pageNum <= 100) {
-            const imgPath = `./pages/page-${pageNum}.png`;
-            const exists = await checkImageExists(imgPath);
-            
-            if (exists) {
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'page';
-                const img = document.createElement('img');
-                img.src = imgPath;
-                pageDiv.appendChild(img);
-                flipbookElem.appendChild(pageDiv);
-                pageNum++;
-            } else {
-                active = false;
-            }
-        }
-
-        if (pageNum === 1) renderDummyCover();
-        else buildFlipbook();
-    }
-
-    function checkImageExists(url) {
-        return new Promise(resolve => {
-            const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = url;
-        });
-    }
-
-    function renderDummyCover() {
-        flipbookElem.innerHTML = `
-            <div class="page" style="display:flex;align-items:center;justify-content:center;background:#003366;color:white;">
-                <div style="text-align:center;padding:20px;">
-                    <h2>School Newsletter</h2>
-                    <p style="margin-top:10px;">Issue #1</p>
-                    <small style="margin-top:20px;display:block;opacity:0.7">Upload document.pdf into /pages folder</small>
-                </div>
-            </div>
-            <div class="page" style="display:flex;align-items:center;justify-content:center;background:#fff;">
-                <p>Welcome to our digital newsletter reader!</p>
-            </div>
-        `;
-        buildFlipbook();
-    }
-
-    function buildFlipbook() {
-        const isMobile = window.innerWidth < CONFIG.singlePageModeWidthCutoff;
+        const isMobile = window.innerWidth < 768;
 
         pageFlip = new St.PageFlip(flipbookElem, {
-            width: CONFIG.pageDimensions.width,
-            height: CONFIG.pageDimensions.height,
+            width: 550,
+            height: 733,
             size: "stretch",
-            minWidth: 300,
-            maxWidth: 1000,
-            minHeight: 400,
-            maxHeight: 1400,
-            maxShadowOpacity: 0.5,
+            minWidth: 320,
+            maxWidth: 900,
+            minHeight: 420,
+            maxHeight: 1200,
+            maxShadowOpacity: 0.4,
             showCover: true,
-            mobileScrollSupport: false,
-            usePortrait: isMobile
+            usePortrait: isMobile,
+            flippingTime: 800
         });
 
         pageFlip.loadFromHTML(document.querySelectorAll('#flipbook .page'));
 
-        pageFlip.on('flip', () => updatePageIndicator());
+        const total = pageFlip.getPageCount();
+        pageTotal.innerText = total;
+        pageScrubber.max = total;
 
-        loader.style.opacity = '0';
-        setTimeout(() => loader.style.display = 'none', 400);
-
-        updatePageIndicator();
-    }
-
-    function updatePageIndicator() {
-        if (!pageFlip) return;
-        pageIndicator.innerText = `Page ${pageFlip.getCurrentPageIndex() + 1} of ${pageFlip.getPageCount()}`;
-    }
-
-    function setupEventListeners() {
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') pageFlip.flipNext();
-            if (e.key === 'ArrowLeft') pageFlip.flipPrev();
-            if (e.key === 'Escape') resetZoom();
-        });
-
-        document.getElementById('btn-fullscreen').addEventListener('click', () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else if (document.exitFullscreen) document.exitFullscreen();
-        });
-
-        zoomStage.addEventListener('dblclick', () => {
-            if (zoomLevel === 1) {
-                zoomLevel = 2;
-                zoomStage.querySelector('.flipbook-wrapper').style.transform = `scale(${zoomLevel})`;
-            } else resetZoom();
-        });
-
-        const searchModal = document.getElementById('search-modal');
-        const tocModal = document.getElementById('toc-modal');
-
-        document.getElementById('btn-search').addEventListener('click', () => searchModal.classList.add('active'));
-        document.getElementById('close-search').addEventListener('click', () => searchModal.classList.remove('active'));
-        document.getElementById('btn-toc').addEventListener('click', () => tocModal.classList.add('active'));
-        document.getElementById('close-toc').addEventListener('click', () => tocModal.classList.remove('active'));
-
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') executeSearch(e.target.value.toLowerCase().trim());
+        pageFlip.on('flip', (e) => {
+            const current = e.data + 1;
+            pageCurrent.innerText = current;
+            pageScrubber.value = current;
         });
     }
 
-    function resetZoom() {
-        zoomLevel = 1;
-        zoomStage.querySelector('.flipbook-wrapper').style.transform = `scale(1)`;
+    /**
+     * Search & Text Indexing
+     */
+    async function cachePDFText(totalPages) {
+        for (let i = 1; i <= totalPages; i++) {
+            const page = await pdfDoc.getPage(i);
+            const content = await page.getTextContent();
+            const text = content.items.map(item => item.str).join(' ');
+            textContentCache.push({ page: i, text });
+        }
     }
 
     function executeSearch(query) {
-        const resultsContainer = document.getElementById('search-results');
-        resultsContainer.innerHTML = '';
-        if (!query) return;
+        searchResults.innerHTML = '';
+        if (!query.trim()) {
+            searchResults.innerHTML = '<div class="empty-state">Type a keyword to search this issue...</div>';
+            return;
+        }
 
-        const matches = textContentCache.filter(item => item.text.toLowerCase().includes(query));
+        const matches = textContentCache.filter(item => item.text.toLowerCase().includes(query.toLowerCase()));
 
         if (matches.length === 0) {
-            resultsContainer.innerHTML = '<p class="search-item">No matches found.</p>';
+            searchResults.innerHTML = '<div class="empty-state">No matching text found.</div>';
             return;
         }
 
         matches.forEach(match => {
-            const div = document.createElement('div');
-            div.className = 'search-item';
-            div.innerText = `Page ${match.page}: "...${snippet(match.text, query)}..."`;
-            div.addEventListener('click', () => {
-                pageFlip.flip(match.page - 1);
-                document.getElementById('search-modal').classList.remove('active');
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            
+            const idx = match.text.toLowerCase().indexOf(query.toLowerCase());
+            const snippet = match.text.substring(Math.max(0, idx - 25), Math.min(match.text.length, idx + 35));
+
+            item.innerHTML = `
+                <span>"...${snippet}..."</span>
+                <span class="result-page-tag">Page ${match.page}</span>
+            `;
+
+            item.addEventListener('click', () => {
+                pageFlip.turnToPage(match.page - 1);
+                searchModal.classList.remove('active');
             });
-            resultsContainer.appendChild(div);
+
+            searchResults.appendChild(item);
         });
     }
 
-    function snippet(text, query) {
-        const index = text.toLowerCase().indexOf(query);
-        const start = Math.max(0, index - 20);
-        const end = Math.min(text.length, index + query.length + 20);
-        return text.substring(start, end);
+    /**
+     * Archive UI Builder
+     */
+    function buildArchiveUI() {
+        archiveGrid.innerHTML = '';
+        ISSUES_DATABASE.forEach(issue => {
+            const card = document.createElement('div');
+            card.className = 'archive-card';
+            card.innerHTML = `
+                <h4>${issue.title}</h4>
+                <p>${issue.date} &bull; ${issue.vol}</p>
+            `;
+            card.addEventListener('click', () => {
+                currentIssue = issue;
+                archiveModal.classList.remove('active');
+                loadPublication(issue.pdfPath);
+            });
+            archiveGrid.appendChild(card);
+        });
     }
 
-    function buildTableOfContents(total) {
-        const tocList = document.getElementById('toc-list');
-        tocList.innerHTML = '';
-        for (let i = 1; i <= total; i++) {
-            const item = document.createElement('li');
-            item.className = 'toc-item';
-            item.innerText = `Page ${i}`;
-            item.addEventListener('click', () => {
-                pageFlip.turnToPage(i - 1);
-                document.getElementById('toc-modal').classList.remove('active');
-            });
-            tocList.appendChild(item);
-        }
+    /**
+     * Keyboard Shortcuts & Event Handlers
+     */
+    function setupEventListeners() {
+        // Search trigger keyboard shortcut (Cmd+K / Ctrl+K)
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                searchModal.classList.add('active');
+                searchInput.focus();
+            }
+            if (e.key === 'Escape') {
+                searchModal.classList.remove('active');
+                archiveModal.classList.remove('active');
+            }
+            if (pageFlip) {
+                if (e.key === 'ArrowRight') pageFlip.flipNext();
+                if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+            }
+        });
+
+        document.getElementById('btn-search-trigger').addEventListener('click', () => {
+            searchModal.classList.add('active');
+            searchInput.focus();
+        });
+
+        document.getElementById('btn-archive-trigger').addEventListener('click', () => {
+            archiveModal.classList.add('active');
+        });
+
+        document.getElementById('close-archive').addEventListener('click', () => {
+            archiveModal.classList.remove('active');
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            executeSearch(e.target.value);
+        });
+
+        // Floating Reader Bar Arrow Controls
+        document.getElementById('btn-prev-page').addEventListener('click', () => pageFlip && pageFlip.flipPrev());
+        document.getElementById('btn-next-page').addEventListener('click', () => pageFlip && pageFlip.flipNext());
+        
+        pageScrubber.addEventListener('input', (e) => {
+            if (pageFlip) pageFlip.turnToPage(parseInt(e.target.value) - 1);
+        });
+
+        // Fullscreen Toggle
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
     }
 });

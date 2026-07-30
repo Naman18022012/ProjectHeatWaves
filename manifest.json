@@ -1,10 +1,10 @@
 {
-  "name": "School Newsletter Reader",
-  "short_name": "Gazette PWA",
+  "name": "HEAT WAVES — Digital Publication",
+  "short_name": "Heat Waves",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#e5e5eb",
-  "theme_color": "#1a1a1e",
+  "background_color": "#f6f4ee",
+  "theme_color": "#f6f4ee",
   "icons": [
     {
       "src": "./icons/icon-192.png",
