@@ -3,146 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HEAT WAVES — Student Digital Magazine</title>
+    <title>School Newsletter - Digital Flipbook</title>
 
-    <!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="./style.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
 
-    <!-- Flipbook & PDF Engines -->
+    <!-- External Open Source Libraries -->
+    <!-- PDF.js for dynamic PDF reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <!-- StPageFlip for realistic 3D paper page turns -->
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
 <body>
 
-    <!-- Soft Ambient Light -->
-    <div class="ambient-light"></div>
-
-    <!-- Top Navigation Header -->
-    <header class="top-header">
-        <div class="brand">
-            <div class="brand-badge">HW</div>
-            <div class="brand-text">
-                <span class="brand-name">HEAT WAVES</span>
-                <span class="brand-sub">STUDENT VOICE &amp; CREATIVE ARTS</span>
-            </div>
+    <!-- Minimal Header / Floating Controls -->
+    <header class="app-header">
+        <div class="brand-title">School Gazette</div>
+        <div class="header-controls">
+            <button id="btn-toc" title="Table of Contents" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+            <button id="btn-search" title="Search Text" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+            <button id="btn-fullscreen" title="Toggle Fullscreen" class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
         </div>
-
-        <nav class="header-nav">
-            <button id="btn-search" class="nav-btn" title="Search Issue (Cmd+K)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>Search</span>
-                <kbd class="kbd-shortcut">⌘K</kbd>
-            </button>
-
-            <button id="btn-archive" class="nav-btn">
-                <span>Archive</span>
-            </button>
-
-            <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-            </button>
-        </nav>
     </header>
 
-    <!-- HERO LANDING SCREEN -->
-    <section class="landing-hero" id="landing-hero">
-        <div class="hero-left">
-            <div class="issue-pill">
-                <span class="pulse-dot"></span>
-                <span>ISSUE 04 &bull; AUGUST 2026</span>
-            </div>
-            
-            <h1 class="hero-heading">Ideas, Stories &amp;<br><span class="highlight-text">Student Culture.</span></h1>
-            
-            <p class="hero-description">
-                Welcome to this month's edition of Heat Waves. Featuring student artwork, campus debates, technology spotlights, and creative writing.
-            </p>
-
-            <div class="hero-cta-group">
-                <button id="btn-open-mag" class="primary-btn">
-                    <span>Read Magazine</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </button>
-                <span class="reading-time-tag">⚡ 5 min read &bull; 12 Pages</span>
-            </div>
+    <!-- Main Flipbook Container Stage -->
+    <main class="viewport-stage" id="zoom-stage">
+        <div class="loading-overlay" id="loader">
+            <div class="spinner"></div>
+            <p id="loader-status">Preparing digital publication...</p>
         </div>
 
-        <div class="hero-right">
-            <div class="magazine-3d-card" id="hero-card">
-                <div class="card-cover-inner" id="cover-preview-box">
-                    <div class="cover-placeholder">
-                        <div class="placeholder-title">HEAT WAVES</div>
-                        <p>August 2026 Issue</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FLIPBOOK STAGE -->
-    <main class="flipbook-stage" id="flipbook-stage">
-        <!-- Loader Curtain -->
-        <div class="loader-overlay" id="loader">
-            <div class="loader-box">
-                <div class="loader-spinner"></div>
-                <span class="loader-text" id="loader-status">Preparing publication...</span>
-                <div class="progress-bar-track">
-                    <div class="progress-bar-fill" id="loader-bar"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Flipbook Mount Point -->
-        <div id="flipbook-container" class="flipbook-container">
+        <div id="flipbook-container" class="flipbook-wrapper">
             <div id="flipbook"></div>
         </div>
     </main>
 
-    <!-- FLOATING CONTROLS BAR -->
-    <div class="floating-toolbar" id="toolbar">
-        <button id="btn-prev" class="tool-arrow" title="Previous Page">&larr;</button>
-        
-        <div class="scrubber-group">
-            <span id="page-num-cur">1</span>
-            <input type="range" id="page-scrubber" min="1" max="1" value="1">
-            <span id="page-num-total">--</span>
-        </div>
+    <!-- Minimal Footer Indicator -->
+    <footer class="app-footer">
+        <span id="page-indicator">Page -- of --</span>
+    </footer>
 
-        <button id="btn-next" class="tool-arrow" title="Next Page">&rarr;</button>
-    </div>
-
-    <!-- COMMAND PALETTE (SEARCH) -->
-    <div class="modal-backdrop" id="search-modal">
-        <div class="command-palette">
-            <div class="palette-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="search-input" placeholder="Search articles, stories, page numbers..." autocomplete="off">
-                <span class="esc-tag">ESC</span>
+    <!-- Search Modal Drawer -->
+    <div class="modal" id="search-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Search Newsletter</h3>
+                <button class="close-btn" id="close-search">&times;</button>
             </div>
-            <div class="palette-body" id="search-results">
-                <div class="empty-msg">Start typing to search inside this issue...</div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Type keyword and press Enter..." />
             </div>
+            <div class="search-results" id="search-results"></div>
         </div>
     </div>
 
-    <!-- ARCHIVE MODAL -->
-    <div class="modal-backdrop" id="archive-modal">
-        <div class="archive-box">
-            <div class="archive-header">
-                <h3>Magazine Archive</h3>
-                <button class="close-btn" id="btn-close-archive">&times;</button>
+    <!-- Table of Contents Modal Drawer -->
+    <div class="modal" id="toc-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Table of Contents</h3>
+                <button class="close-btn" id="close-toc">&times;</button>
             </div>
-            <div class="archive-list" id="archive-list">
-                <!-- Dynamically populated -->
-            </div>
+            <ul class="toc-list" id="toc-list"></ul>
         </div>
     </div>
 
-    <script src="./script.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Register Service Worker for Offline PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                    .catch(err => console.error('ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>
