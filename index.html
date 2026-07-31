@@ -3,143 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HEAT WAVES — Digital Publication</title>
+    <title>Heat Waves — Digital Student Magazine</title>
 
-    <!-- PWA Meta -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#f6f4ee">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
-    <!-- High-End Editorial Typography -->
+    <!-- Google Fonts: Plus Jakarta Sans & Fraunces (Fresh, energetic editorial) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./style.css">
 
-    <!-- External Open-Source Engines -->
+    <!-- External Flipbook & PDF Engines -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
 <body>
 
-    <!-- Ambient Lighting Backdrop -->
-    <div class="ambient-glow"></div>
-
-    <!-- Editorial Header Navbar -->
-    <header class="editorial-header">
-        <div class="brand-block">
-            <span class="brand-title">HEAT WAVES</span>
-            <span class="brand-tag">VOL. 04</span>
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="brand">
+            <span class="brand-name">HEAT WAVES</span>
+            <span class="issue-badge">VOL. 04</span>
         </div>
 
-        <nav class="header-actions">
-            <button id="btn-search-trigger" class="pill-btn" title="Search (Cmd+K)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="nav-controls">
+            <button id="btn-search" class="nav-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <span>Search</span>
-                <kbd class="cmd-kbd">⌘K</kbd>
+                <span class="kbd">⌘K</span>
             </button>
-
-            <button id="btn-archive-trigger" class="pill-btn">
-                <span>Archive</span>
-            </button>
-
-            <button id="btn-fullscreen" class="icon-circle-btn" title="Toggle Fullscreen">
+            <button id="btn-archive" class="nav-btn">Archive</button>
+            <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
             </button>
-        </nav>
+        </div>
     </header>
 
-    <!-- LANDING EXPERIENCE SCREEN -->
-    <section class="landing-screen" id="landing-screen">
-        <div class="hero-content">
-            <div class="edition-badge">ISSUE 04 &mdash; AUGUST 2026</div>
-            <h1 class="hero-title">The Summer Reflection</h1>
-            <p class="hero-subtitle">An exploration of student perspectives, contemporary art, and creative discourse.</p>
+    <!-- LANDING VIEW -->
+    <section id="landing-view" class="landing-container">
+        <div class="landing-content">
+            <div class="tagline">STUDENT DIGITAL MAGAZINE</div>
+            <h1 class="magazine-title">Heat Waves</h1>
+            <p class="magazine-desc">Stories, creative art, campus news, and student voices from the 2026 Summer Edition.</p>
             
-            <button id="btn-open-issue" class="cta-button">
-                <span>Open Issue</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
+            <div class="cta-group">
+                <button id="btn-read-now" class="btn-primary">
+                    <span>Read Issue</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+            </div>
         </div>
 
-        <div class="hero-cover-preview" id="hero-cover-preview">
-            <div class="cover-card-wrapper">
-                <canvas id="cover-canvas"></canvas>
+        <div class="landing-preview">
+            <div class="cover-card">
+                <canvas id="landing-cover-canvas"></canvas>
+                <div id="cover-fallback" class="cover-fallback-ui">
+                    <span class="fallback-tag">ISSUE 04</span>
+                    <h2>HEAT WAVES</h2>
+                    <p>Summer 2026</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- FLIPBOOK READING VIEWPORT STAGE -->
-    <main class="reading-stage" id="reading-stage">
-        <!-- Minimal Loading Curtain -->
-        <div class="loader-curtain" id="loader">
-            <div class="loader-brand">HEAT WAVES</div>
-            <div class="loader-bar-track">
-                <div class="loader-bar-fill" id="loader-progress"></div>
-            </div>
-            <span class="loader-status-text" id="loader-status">Rendering publication...</span>
+    <!-- FLIPBOOK READER VIEW -->
+    <main id="reader-view" class="reader-container hidden">
+        <!-- Loading Indicator -->
+        <div id="loader" class="loader-overlay">
+            <div class="spinner"></div>
+            <p id="loader-status">Loading publication...</p>
         </div>
 
-        <!-- 3D Flipbook Container -->
-        <div id="flipbook-wrapper" class="flipbook-wrapper">
+        <!-- Flipbook Container -->
+        <div class="flipbook-viewport">
             <div id="flipbook"></div>
+        </div>
+
+        <!-- Floating Bottom Reader Bar -->
+        <div class="reader-bar">
+            <button id="btn-prev" class="bar-btn">&larr; Prev</button>
+            <div class="page-indicator">
+                <span id="curr-page">1</span> / <span id="total-pages">--</span>
+            </div>
+            <input type="range" id="page-slider" min="1" max="1" value="1">
+            <button id="btn-next" class="bar-btn">Next &rarr;</button>
         </div>
     </main>
 
-    <!-- FLOATING BOTTOM CONTROLS -->
-    <div class="floating-reader-bar" id="reader-bar">
-        <button id="btn-prev-page" class="nav-arrow" title="Previous Page">&larr;</button>
-        
-        <div class="page-slider-block">
-            <span id="page-current">1</span>
-            <input type="range" id="page-scrubber" min="1" max="1" value="1" step="1">
-            <span id="page-total">--</span>
-        </div>
-
-        <button id="btn-next-page" class="nav-arrow" title="Next Page">&rarr;</button>
-    </div>
-
-    <!-- COMMAND PALETTE SEARCH MODAL (Linear/Notion Inspired) -->
-    <div class="command-palette-backdrop" id="search-modal">
-        <div class="command-palette">
-            <div class="palette-input-wrapper">
+    <!-- COMMAND PALETTE (SEARCH) -->
+    <div id="search-modal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="search-header">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="search-input" placeholder="Search articles, topics, or pages..." autocomplete="off" />
-                <span class="esc-badge">ESC</span>
+                <input type="text" id="search-input" placeholder="Search articles, topics, or keywords..." autocomplete="off">
+                <span class="esc-tag">ESC</span>
             </div>
-            <div class="palette-results" id="search-results">
-                <div class="empty-state">Type a keyword to search this issue...</div>
+            <div id="search-results" class="search-results-list">
+                <div class="hint">Type something to search inside this issue...</div>
             </div>
         </div>
     </div>
 
-    <!-- ARCHIVE DRAWER -->
-    <div class="archive-drawer-backdrop" id="archive-modal">
-        <div class="archive-drawer">
-            <div class="drawer-header">
-                <h2>Publication Archive</h2>
-                <button class="icon-circle-btn" id="close-archive">&times;</button>
+    <!-- ARCHIVE MODAL -->
+    <div id="archive-modal" class="modal-backdrop">
+        <div class="modal-box archive-box">
+            <div class="archive-header">
+                <h3>Previous Issues</h3>
+                <button id="close-archive" class="close-btn">&times;</button>
             </div>
-            <div class="archive-grid" id="archive-grid">
-                <!-- Populated dynamically via JS -->
-            </div>
+            <div id="archive-list" class="archive-grid"></div>
         </div>
     </div>
 
     <script src="./script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('SW Ready:', reg.scope))
-                    .catch(err => console.error('SW Error:', err));
-            });
-        }
-    </script>
 </body>
 </html>
