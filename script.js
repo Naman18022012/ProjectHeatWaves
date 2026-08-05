@@ -1,659 +1,513 @@
-/**
- * ÉLÉGANCE — LUXURY DIGITAL PUBLICATION ENGINE
- * Engineered with PDF.js & PageFlip.js
- */
+/* ==========================================================================
+   PROJECT HEAT WAVES (NEWSLETTER) — ENGINE & INTERACTIVE CONTROLLER
+   ========================================================================== */
 
-(function () {
-  'use strict';
+// Global State
+const STATE = {
+    pdfDoc: null,
+    pdfPath: 'EYP Rubrix.pdf', // Default loaded sample rubric newsletter PDF
+    pageFlip: null,
+    currentPage: 1,
+    totalPages: 0,
+    zoomScale: 1.0,
+    renderScale: 2.2, // High-DPI render multiplier for crystal-clear readable text
+    soundEnabled: true,
+    isDarkMode: true,
+    searchIndex: [],
+    audioCtx: null
+};
 
-  /* ==========================================================================
-     1. AUDIO ENGINE (Web Audio API Synthesizer - Zero External Files Required)
-     ========================================================================== */
-  class AudioEngine {
-    constructor() {
-      this.ctx = null;
-      this.enabled = true;
-    }
+// DOM References
+const DOM = {
+    loadingScreen: document.getElementById('loading-screen'),
+    loadingProgress: document.getElementById('loading-progress'),
+    loadingStatus: document.getElementById('loading-status'),
+    heroScreen: document.getElementById('hero-screen'),
+    readerScreen: document.getElementById('reader-screen'),
+    btnOpenReader: document.getElementById('btn-open-reader'),
+    btnHeroContents: document.getElementById('btn-hero-contents'),
+    btnBackHero: document.getElementById('btn-back-hero'),
+    pdfUploadInput: document.getElementById('pdf-upload-input'),
+    flipbookViewport: document.getElementById('flipbook-viewport'),
+    flipbookWrapper: document.getElementById('flipbook'),
+    tbPageStatus: document.getElementById('tb-page-status'),
+    tbCurrentPageInput: document.getElementById('tb-current-page-input'),
+    tbTotalPagesLabel: document.getElementById('tb-total-pages-label'),
+    tbPrevPage: document.getElementById('tb-prev-page'),
+    tbNextPage: document.getElementById('tb-next-page'),
+    tbZoomIn: document.getElementById('tb-zoom-in'),
+    tbZoomOut: document.getElementById('tb-zoom-out'),
+    tbZoomReset: document.getElementById('tb-zoom-reset'),
+    tbZoomLevel: document.getElementById('tb-zoom-level'),
+    tbToggleToc: document.getElementById('tb-toggle-toc'),
+    tbToggleSearch: document.getElementById('tb-toggle-search'),
+    tbToggleSound: document.getElementById('tb-toggle-sound'),
+    tbToggleTheme: document.getElementById('tb-toggle-theme'),
+    tbToggleFullscreen: document.getElementById('tb-toggle-fullscreen'),
+    progressBar: document.getElementById('reading-progress-bar'),
+    hero3dCard: document.getElementById('hero-3d-card'),
+    heroReadTime: document.getElementById('hero-read-time'),
+    tocModal: document.getElementById('toc-modal'),
+    tocBackdrop: document.getElementById('toc-backdrop'),
+    btnCloseToc: document.getElementById('btn-close-toc'),
+    tocGrid: document.getElementById('toc-grid'),
+    searchModal: document.getElementById('search-modal'),
+    searchInput: document.getElementById('search-input'),
+    searchResultsContainer: document.getElementById('search-results-container'),
+    searchResultsCount: document.getElementById('search-results-count'),
+    btnCloseSearch: document.getElementById('btn-close-search'),
+    btnClearSearch: document.getElementById('btn-clear-search')
+};
 
-    init() {
-      if (!this.ctx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioContext();
-      }
-    }
+// ==========================================================================
+// INITIALIZATION
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    initAudioEngine();
+    initHeroParallax();
+    initEventListeners();
+    loadPdfDocument(STATE.pdfPath);
+});
 
-    playPageFlipSound() {
-      if (!this.enabled) return;
-      this.init();
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+// ==========================================================================
+// REALISTIC PAGE FLIP AUDIO SYNTHESIZER (Web Audio API)
+// Creates an authentic paper rustle without relying on external media files.
+// ==========================================================================
+function initAudioEngine() {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+}
 
-      // Synthesize realistic paper rustle sound using filtered white noise
-      const bufferSize = this.ctx.sampleRate * 0.15; // 150ms duration
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const output = buffer.getChannelData(0);
-
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-
-      const whiteNoise = this.ctx.createBufferSource();
-      whiteNoise.buffer = buffer;
-
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(800, this.ctx.currentTime);
-      filter.Q.setValueAtTime(1.5, this.ctx.currentTime);
-
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-
-      whiteNoise.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      whiteNoise.start();
-    }
-
-    playClickSound() {
-      if (!this.enabled) return;
-      this.init();
-      if (this.ctx.state === 'suspended') this.ctx.resume();
-
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.04);
-
-      gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
-    }
-  }
-
-  /* ==========================================================================
-     2. AMBIENT PARTICLES CANVAS ENGINE
-     ========================================================================== */
-  class ParticleEngine {
-    constructor(canvasId) {
-      this.canvas = document.getElementById(canvasId);
-      this.ctx = this.canvas.getContext('2d');
-      this.particles = [];
-      this.numParticles = 40;
-      this.resize();
-      this.initParticles();
-      this.animate();
-
-      window.addEventListener('resize', () => this.resize());
-    }
-
-    resize() {
-      this.width = this.canvas.width = window.innerWidth;
-      this.height = this.canvas.height = window.innerHeight;
-    }
-
-    initParticles() {
-      this.particles = [];
-      for (let i = 0; i < this.numParticles; i++) {
-        this.particles.push({
-          x: Math.random() * this.width,
-          y: Math.random() * this.height,
-          radius: Math.random() * 1.5 + 0.5,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.3,
-          alpha: Math.random() * 0.5 + 0.2
-        });
-      }
-    }
-
-    animate() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
-      const isDark = document.documentElement.classList.contains('dark');
-      this.ctx.fillStyle = isDark ? 'rgba(212, 175, 55, ' : 'rgba(100, 100, 100, ';
-
-      this.particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0) p.x = this.width;
-        if (p.x > this.width) p.x = 0;
-        if (p.y < 0) p.y = this.height;
-        if (p.y > this.height) p.y = 0;
-
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        this.ctx.fillStyle = `${isDark ? '212, 175, 55' : '120, 120, 120'}, ${p.alpha})`;
-        this.ctx.fill();
-      });
-
-      requestAnimationFrame(() => this.animate());
-    }
-  }
-
-  /* ==========================================================================
-     3. MAIN PUBLICATION APPLICATION CONTROLLER
-     ========================================================================== */
-  class PublicationApp {
-    constructor() {
-      this.pdfDoc = null;
-      this.pageFlip = null;
-      this.currentPage = 1;
-      this.totalPages = 0;
-      this.currentZoom = 1.0;
-      this.extractedTextPages = [];
-
-      this.audio = new AudioEngine();
-      this.particles = new ParticleEngine('ambient-canvas');
-
-      this.initDOMElements();
-      this.setupEventListeners();
-      this.setup3DCoverTilt();
-      this.loadPDF(window.DEFAULT_PDF_URL);
-    }
-
-    initDOMElements() {
-      // Screens & Containers
-      this.loadingScreen = document.getElementById('loading-screen');
-      this.loadingProgressBar = document.getElementById('loading-progress-bar');
-      this.loadingStatusText = document.getElementById('loading-status-text');
-      this.heroSection = document.getElementById('hero-section');
-      this.readerWorkspace = document.getElementById('reader-workspace');
-      this.pageFlipContainer = document.getElementById('pageflip-container');
-      this.flipbookWrapper = document.getElementById('flipbook-wrapper');
-
-      // Buttons
-      this.btnOpenReader = document.getElementById('btn-open-reader');
-      this.btnExploreTOC = document.getElementById('btn-explore-toc');
-      this.btnBackHero = document.getElementById('btn-back-hero');
-      this.btnPrevPage = document.getElementById('btn-prev-page');
-      this.btnNextPage = document.getElementById('btn-next-page');
-      this.btnZoomIn = document.getElementById('btn-zoom-in');
-      this.btnZoomOut = document.getElementById('btn-zoom-out');
-      this.btnZoomReset = document.getElementById('btn-zoom-reset');
-      this.btnToggleFullscreen = document.getElementById('btn-toggle-fullscreen');
-      this.btnToggleTOC = document.getElementById('btn-toggle-toc');
-      this.btnCloseTOC = document.getElementById('btn-close-toc');
-      this.btnToggleSearch = document.getElementById('btn-toggle-search');
-      this.btnClearSearch = document.getElementById('btn-clear-search');
-
-      // Inputs & Displays
-      this.pageInput = document.getElementById('page-number-input');
-      this.pageTotalSpan = document.getElementById('page-count-total');
-      this.zoomIndicator = document.getElementById('zoom-level-indicator');
-      this.readingProgressFill = document.getElementById('reading-progress-fill');
-
-      // Modals & Drawers
-      this.tocDrawer = document.getElementById('toc-drawer');
-      this.tocBackdrop = document.getElementById('toc-backdrop');
-      this.tocGrid = document.getElementById('toc-gallery-grid');
-      this.searchModal = document.getElementById('search-modal');
-      this.searchBackdrop = document.getElementById('search-backdrop');
-      this.searchInput = document.getElementById('search-input');
-      this.searchResultsList = document.getElementById('search-results-list');
-      this.searchResultsCount = document.getElementById('search-results-count');
-      this.searchSpinner = document.getElementById('search-spinner');
-    }
-
-    setupEventListeners() {
-      // Hero CTAs
-      this.btnOpenReader.addEventListener('click', () => {
-        this.audio.playClickSound();
-        this.openReaderWorkspace();
-      });
-
-      this.btnExploreTOC.addEventListener('click', () => {
-        this.audio.playClickSound();
-        this.openReaderWorkspace();
-        this.openTOCDrawer();
-      });
-
-      this.btnBackHero.addEventListener('click', () => {
-        this.audio.playClickSound();
-        this.closeReaderWorkspace();
-      });
-
-      // Page Navigation
-      this.btnPrevPage.addEventListener('click', () => {
-        this.audio.playClickSound();
-        if (this.pageFlip) this.pageFlip.flipPrev();
-      });
-
-      this.btnNextPage.addEventListener('click', () => {
-        this.audio.playClickSound();
-        if (this.pageFlip) this.pageFlip.flipNext();
-      });
-
-      this.pageInput.addEventListener('change', (e) => {
-        let val = parseInt(e.target.value, 10);
-        if (isNaN(val)) val = 1;
-        val = Math.max(1, Math.min(this.totalPages, val));
-        if (this.pageFlip) this.pageFlip.turnToPage(val - 1);
-      });
-
-      // Zoom Controls
-      this.btnZoomIn.addEventListener('click', () => this.setZoom(this.currentZoom + 0.15));
-      this.btnZoomOut.addEventListener('click', () => this.setZoom(this.currentZoom - 0.15));
-      this.btnZoomReset.addEventListener('click', () => this.setZoom(1.0));
-
-      // Fullscreen Toggle
-      this.btnToggleFullscreen.addEventListener('click', () => this.toggleFullscreen());
-
-      // Theme Toggles
-      const toggleTheme = () => {
-        this.audio.playClickSound();
-        document.documentElement.classList.toggle('dark');
-      };
-      document.getElementById('theme-toggle-hero').addEventListener('click', toggleTheme);
-      document.getElementById('theme-toggle-reader').addEventListener('click', toggleTheme);
-
-      // Sound Toggles
-      const toggleSound = () => {
-        this.audio.enabled = !this.audio.enabled;
-        const soundOnIcons = document.querySelectorAll('.icon-sound-on');
-        const soundOffIcons = document.querySelectorAll('.icon-sound-off');
-
-        soundOnIcons.forEach(el => el.classList.toggle('hide', !this.audio.enabled));
-        soundOffIcons.forEach(el => el.classList.toggle('hide', this.audio.enabled));
-      };
-      document.getElementById('sound-toggle-hero').addEventListener('click', toggleSound);
-      document.getElementById('sound-toggle-reader').addEventListener('click', toggleSound);
-
-      // TOC Modal
-      this.btnToggleTOC.addEventListener('click', () => this.openTOCDrawer());
-      this.btnCloseTOC.addEventListener('click', () => this.closeTOCDrawer());
-      this.tocBackdrop.addEventListener('click', () => this.closeTOCDrawer());
-
-      // Search Modal
-      this.btnToggleSearch.addEventListener('click', () => this.openSearchModal());
-      this.searchBackdrop.addEventListener('click', () => this.closeSearchModal());
-      this.searchInput.addEventListener('input', (e) => this.handleSearchQuery(e.target.value));
-      this.btnClearSearch.addEventListener('click', () => {
-        this.searchInput.value = '';
-        this.handleSearchQuery('');
-        this.searchInput.focus();
-      });
-
-      // Keyboard Shortcuts
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          this.closeTOCDrawer();
-          this.closeSearchModal();
-          if (!this.readerWorkspace.classList.contains('hide-reader')) {
-            this.closeReaderWorkspace();
-          }
-        } else if (e.key === 'ArrowRight' && !this.isModalOpen()) {
-          if (this.pageFlip) this.pageFlip.flipNext();
-        } else if (e.key === 'ArrowLeft' && !this.isModalOpen()) {
-          if (this.pageFlip) this.pageFlip.flipPrev();
-        } else if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-          e.preventDefault();
-          this.openSearchModal();
-        } else if (e.key === 'f' || e.key === 'F') {
-          if (!this.isModalOpen() && e.target.tagName !== 'INPUT') {
-            this.toggleFullscreen();
-          }
+function playPageFlipSound() {
+    if (!STATE.soundEnabled) return;
+    
+    try {
+        if (!STATE.audioCtx) {
+            STATE.audioCtx = new AudioContext();
         }
-      });
+        if (STATE.audioCtx.state === 'suspended') {
+            STATE.audioCtx.resume();
+        }
 
-      // Initialize Lucide Icons
-      lucide.createIcons();
+        const ctx = STATE.audioCtx;
+        const bufferSize = ctx.sampleRate * 0.18; // 180ms paper flip audio duration
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = buffer.getChannelData(0);
+
+        // Generate white/pink noise burst representing paper friction
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = buffer;
+
+        // Bandpass filter to model authentic paper friction resonance
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1200, ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.15);
+        filter.Q.value = 1.8;
+
+        // Envelope Gain
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.01, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.03);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.17);
+
+        whiteNoise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        whiteNoise.start();
+    } catch (e) {
+        console.warn('Audio playback error:', e);
     }
+}
 
-    isModalOpen() {
-      return this.tocDrawer.classList.contains('active') || this.searchModal.hasAttribute('open');
-    }
-
-    /* ==========================================================================
-       4. PDF LOADING & RENDERING ENGINE
-       ========================================================================== */
-    async loadPDF(url) {
-      try {
-        this.updateLoadingProgress(15, 'Downloading Publication Data…');
-        
-        const loadingTask = pdfjsLib.getDocument(url);
-        loadingTask.onProgress = (progressData) => {
-          if (progressData.total > 0) {
-            const pct = Math.round((progressData.loaded / progressData.total) * 50);
-            this.updateLoadingProgress(15 + pct, `Loading PDF Pages (${pct * 2}%)...`);
-          }
+// ==========================================================================
+// PDF ENGINE & HIGH-DPI RENDERER
+// ==========================================================================
+async function loadPdfDocument(src) {
+    updateLoadingProgress(10, "LOADING PDF DOCUMENT...");
+    
+    try {
+        const loadingTask = pdfjsLib.getDocument(src);
+        loadingTask.onProgress = (data) => {
+            if (data.total > 0) {
+                const percent = Math.round((data.loaded / data.total) * 60);
+                updateLoadingProgress(10 + percent, `LOADING CONTENT... ${percent}%`);
+            }
         };
 
-        this.pdfDoc = await loadingTask.promise;
-        this.totalPages = this.pdfDoc.numPages;
-        this.pageTotalSpan.textContent = this.totalPages;
-        document.getElementById('hero-total-pages').textContent = `${this.totalPages} Pages`;
+        STATE.pdfDoc = await loadingTask.promise;
+        STATE.totalPages = STATE.pdfDoc.numPages;
 
-        this.updateLoadingProgress(70, 'Rendering High-Resolution Cover…');
-        await this.renderHeroCover();
+        DOM.tbTotalPagesLabel.textContent = `/ ${STATE.totalPages}`;
+        DOM.tbCurrentPageInput.max = STATE.totalPages;
 
-        this.updateLoadingProgress(85, 'Initializing Interactive Flipbook…');
-        await this.buildFlipbookDOM();
-        this.initPageFlipEngine();
+        updateLoadingProgress(75, "INDEXING SEARCH TEXT...");
+        await indexPdfText();
 
-        this.updateLoadingProgress(95, 'Extracting Text for Search…');
-        this.extractTextInBackground();
+        updateLoadingProgress(85, "GENERATING RENDER PAGES...");
+        await buildPageFlipElements();
 
-        this.updateLoadingProgress(100, 'Ready');
+        updateLoadingProgress(100, "READY!");
         setTimeout(() => {
-          this.loadingScreen.classList.add('fade-out');
+            DOM.loadingScreen.classList.add('fade-out');
         }, 400);
 
-      } catch (err) {
-        console.error('Failed to load PDF:', err);
-        this.loadingStatusText.textContent = 'Error loading publication. Check console.';
-      }
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        DOM.loadingStatus.textContent = 'ERROR LOADING PDF DOCUMENT';
+        DOM.loadingStatus.style.color = 'var(--accent-fire)';
     }
+}
 
-    updateLoadingProgress(pct, statusMsg) {
-      this.loadingProgressBar.style.width = `${pct}%`;
-      if (statusMsg) this.loadingStatusText.textContent = statusMsg;
-    }
+function updateLoadingProgress(percent, text) {
+    DOM.loadingProgress.style.width = `${percent}%`;
+    if (text) DOM.loadingStatus.textContent = text;
+}
 
-    async renderHeroCover() {
-      const page = await this.pdfDoc.getPage(1);
-      const canvas = document.getElementById('hero-cover-canvas');
-      const ctx = canvas.getContext('2d');
+// Build crisp render canvas elements for each page
+async function buildPageFlipElements() {
+    DOM.flipbookWrapper.innerHTML = '';
+    
+    // First Page dimensions establish reader ratio
+    const samplePage = await STATE.pdfDoc.getPage(1);
+    const viewport = samplePage.getViewport({ scale: 1.0 });
+    const pageWidth = viewport.width;
+    const pageHeight = viewport.height;
 
-      const viewport = page.getViewport({ scale: 1.5 });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-
-      await page.render({ canvasContext: ctx, viewport }).promise;
-    }
-
-    async buildFlipbookDOM() {
-      this.pageFlipContainer.innerHTML = '';
-      
-      // Determine page size from page 1
-      const page1 = await this.pdfDoc.getPage(1);
-      const viewport = page1.getViewport({ scale: 1.0 });
-      this.pageWidth = viewport.width;
-      this.pageHeight = viewport.height;
-
-      // Render skeleton containers for PageFlip
-      for (let i = 1; i <= this.totalPages; i++) {
-        const pageDiv = document.createElement('div');
-        pageDiv.className = 'stpageflip--page';
-        pageDiv.setAttribute('data-density', i === 1 || i === this.totalPages ? 'hard' : 'soft');
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'page-content-wrapper';
+    for (let pageNum = 1; pageNum <= STATE.totalPages; pageNum++) {
+        const pageSheet = document.createElement('div');
+        pageSheet.className = 'page-sheet';
+        pageSheet.setAttribute('data-page-num', pageNum);
 
         const canvas = document.createElement('canvas');
-        canvas.id = `pdf-canvas-page-${i}`;
-        
-        wrapper.appendChild(canvas);
-        pageDiv.appendChild(wrapper);
-        this.pageFlipContainer.appendChild(pageDiv);
-      }
+        pageSheet.appendChild(canvas);
+        DOM.flipbookWrapper.appendChild(pageSheet);
+
+        // High DPI Crisp Rendering
+        await renderPageCanvas(pageNum, canvas);
     }
 
-    initPageFlipEngine() {
-      // Initialize StPageFlip
-      this.pageFlip = new St.PageFlip(this.pageFlipContainer, {
-        width: this.pageWidth,
-        height: this.pageHeight,
+    // Initialize PageFlip.js with realistic paper settings
+    if (STATE.pageFlip) {
+        STATE.pageFlip.destroy();
+    }
+
+    STATE.pageFlip = new St.PageFlip(DOM.flipbookWrapper, {
+        width: pageWidth,
+        height: pageHeight,
         size: 'stretch',
         minWidth: 320,
         maxWidth: 1000,
-        minHeight: 400,
-        maxHeight: 1400,
-        maxShadowOpacity: 0.7,
+        minHeight: 420,
+        maxHeight: 1350,
+        maxShadowOpacity: 0.6,
         showCover: true,
         mobileScrollSupport: false,
-        usePortrait: window.innerWidth < 768
-      });
+        useMouseEvents: true,
+        flippingTime: 800
+    });
 
-      this.pageFlip.loadFromHTML(document.querySelectorAll('.stpageflip--page'));
+    STATE.pageFlip.loadFromHTML(document.querySelectorAll('.page-sheet'));
 
-      // Events
-      this.pageFlip.on('flip', (e) => {
-        this.currentPage = e.data + 1;
-        this.pageInput.value = this.currentPage;
-        this.updateReadingProgress();
-        this.audio.playPageFlipSound();
-        this.renderVisiblePages();
-      });
+    // Flip Event Handlers
+    STATE.pageFlip.on('flip', (e) => {
+        STATE.currentPage = e.data + 1;
+        updateUIState();
+        playPageFlipSound();
+    });
+}
 
-      // Initial page render
-      this.renderVisiblePages();
-    }
+// High-DPI Crisp Canvas Rendering Engine
+async function renderPageCanvas(pageNum, canvas) {
+    const page = await STATE.pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: STATE.renderScale });
+    
+    const context = canvas.getContext('2d');
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
 
-    async renderVisiblePages() {
-      // Render current and adjacent pages for peak performance
-      const pagesToRender = [this.currentPage - 1, this.currentPage, this.currentPage + 1, this.currentPage + 2]
-        .filter(p => p >= 1 && p <= this.totalPages);
+    const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+    };
 
-      for (const pageNum of pagesToRender) {
-        const canvas = document.getElementById(`pdf-canvas-page-${pageNum}`);
-        if (canvas && !canvas.getAttribute('data-rendered')) {
-          canvas.setAttribute('data-rendered', 'true');
-          const page = await this.pdfDoc.getPage(pageNum);
-          const dpr = window.devicePixelRatio || 1;
-          const viewport = page.getViewport({ scale: 1.5 * dpr });
+    await page.render(renderContext).promise;
+}
 
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
+// Full Text Search Indexer
+async function indexPdfText() {
+    STATE.searchIndex = [];
+    let totalWords = 0;
 
-          await page.render({ canvasContext: ctx, viewport }).promise;
-        }
-      }
-    }
-
-    async extractTextInBackground() {
-      for (let i = 1; i <= this.totalPages; i++) {
-        const page = await this.pdfDoc.getPage(i);
+    for (let i = 1; i <= STATE.totalPages; i++) {
+        const page = await STATE.pdfDoc.getPage(i);
         const textContent = await page.getTextContent();
         const text = textContent.items.map(item => item.str).join(' ');
-        this.extractedTextPages.push({ pageNum: i, text: text });
-      }
-    }
-
-    /* ==========================================================================
-       5. INTERACTIVE WORKSPACE TRANSITIONS & MODALS
-       ========================================================================== */
-    openReaderWorkspace() {
-      this.heroSection.classList.add('zoom-out-exit');
-      this.readerWorkspace.classList.remove('hide-reader');
-      this.readerWorkspace.focus();
-    }
-
-    closeReaderWorkspace() {
-      this.heroSection.classList.remove('zoom-out-exit');
-      this.readerWorkspace.classList.add('hide-reader');
-    }
-
-    setZoom(level) {
-      this.currentZoom = Math.max(0.7, Math.min(2.0, level));
-      this.zoomIndicator.textContent = `${Math.round(this.currentZoom * 100)}%`;
-      this.flipbookWrapper.style.transform = `scale(${this.currentZoom})`;
-    }
-
-    updateReadingProgress() {
-      const pct = (this.currentPage / this.totalPages) * 100;
-      this.readingProgressFill.style.width = `${pct}%`;
-    }
-
-    toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => console.error(err));
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    }
-
-    /* 3D Cover Tilt Physics */
-    setup3DCoverTilt() {
-      const card = document.getElementById('3d-cover-card');
-      const wrapper = document.getElementById('3d-cover-wrapper');
-      if (!card || !wrapper) return;
-
-      wrapper.addEventListener('mousemove', (e) => {
-        const rect = wrapper.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = ((y - centerY) / centerY) * -15;
-        const rotateY = ((x - centerX) / centerX) * 15;
-
-        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-      });
-
-      wrapper.addEventListener('mouseleave', () => {
-        card.style.transform = `rotateX(0deg) rotateY(0deg)`;
-      });
-    }
-
-    /* ==========================================================================
-       6. TABLE OF CONTENTS DRAWER & THUMBNAIL GALLERY
-       ========================================================================== */
-    async openTOCDrawer() {
-      this.tocDrawer.classList.add('active');
-      this.tocDrawer.setAttribute('aria-hidden', 'false');
-
-      if (!this.tocGrid.getAttribute('data-loaded')) {
-        this.tocGrid.setAttribute('data-loaded', 'true');
-        this.tocGrid.innerHTML = '';
-
-        for (let i = 1; i <= this.totalPages; i++) {
-          const card = document.createElement('div');
-          card.className = 'toc-card';
-
-          const preview = document.createElement('div');
-          preview.className = 'toc-card-preview';
-
-          const canvas = document.createElement('canvas');
-          preview.appendChild(canvas);
-
-          const label = document.createElement('div');
-          label.className = 'toc-card-number';
-          label.textContent = `PAGE ${i}`;
-
-          card.appendChild(preview);
-          card.appendChild(label);
-
-          card.addEventListener('click', () => {
-            this.audio.playClickSound();
-            if (this.pageFlip) this.pageFlip.turnToPage(i - 1);
-            this.closeTOCDrawer();
-          });
-
-          this.tocGrid.appendChild(card);
-
-          // Render thumbnail async
-          this.pdfDoc.getPage(i).then(page => {
-            const viewport = page.getViewport({ scale: 0.3 });
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            const ctx = canvas.getContext('2d');
-            page.render({ canvasContext: ctx, viewport });
-          });
-        }
-      }
-    }
-
-    closeTOCDrawer() {
-      this.tocDrawer.classList.remove('active');
-      this.tocDrawer.setAttribute('aria-hidden', 'true');
-    }
-
-    /* ==========================================================================
-       7. DEEP SEARCH ENGINE
-       ========================================================================== */
-    openSearchModal() {
-      this.searchModal.showModal();
-      this.searchInput.focus();
-    }
-
-    closeSearchModal() {
-      this.searchModal.close();
-    }
-
-    handleSearchQuery(query) {
-      const q = query.trim().toLowerCase();
-      this.btnClearSearch.classList.toggle('hide', q.length === 0);
-
-      if (q.length < 2) {
-        this.searchResultsCount.textContent = 'Type at least 2 characters to search';
-        this.searchResultsList.innerHTML = `
-          <div class="search-empty-state">
-            <i data-lucide="file-text" class="empty-icon"></i>
-            <p>Search across the full text of all pages instantly.</p>
-          </div>`;
-        lucide.createIcons();
-        return;
-      }
-
-      this.searchSpinner.classList.remove('hide');
-      
-      const results = [];
-      this.extractedTextPages.forEach(item => {
-        const idx = item.text.toLowerCase().indexOf(q);
-        if (idx !== -1) {
-          const start = Math.max(0, idx - 40);
-          const end = Math.min(item.text.length, idx + q.length + 40);
-          let snippet = item.text.substring(start, end);
-
-          // Highlight matching keyword
-          const regex = new RegExp(`(${q})`, 'gi');
-          snippet = snippet.replace(regex, '<mark>$1</mark>');
-
-          results.push({
-            pageNum: item.pageNum,
-            snippet: `…${snippet}…`
-          });
-        }
-      });
-
-      this.searchSpinner.classList.add('hide');
-      this.searchResultsCount.textContent = `Found ${results.length} result(s)`;
-
-      if (results.length === 0) {
-        this.searchResultsList.innerHTML = `
-          <div class="search-empty-state">
-            <i data-lucide="search-x" class="empty-icon"></i>
-            <p>No matches found for "${query}"</p>
-          </div>`;
-      } else {
-        this.searchResultsList.innerHTML = '';
-        results.forEach(res => {
-          const card = document.createElement('div');
-          card.className = 'search-result-card';
-          card.innerHTML = `
-            <div class="search-result-header">
-              <span class="search-result-page">PAGE ${res.pageNum}</span>
-            </div>
-            <div class="search-result-snippet">${res.snippet}</div>
-          `;
-
-          card.addEventListener('click', () => {
-            this.audio.playClickSound();
-            if (this.pageFlip) this.pageFlip.turnToPage(res.pageNum - 1);
-            this.closeSearchModal();
-          });
-
-          this.searchResultsList.appendChild(card);
+        
+        totalWords += text.split(/\s+/).length;
+        STATE.searchIndex.push({
+            pageNum: i,
+            text: text
         });
-      }
-
-      lucide.createIcons();
     }
-  }
 
-  // Initialize Application on DOM Ready
-  window.addEventListener('DOMContentLoaded', () => {
-    window.app = new PublicationApp();
-  });
+    // Calculate Reading Time (Avg 200 wpm)
+    const readTimeMinutes = Math.max(1, Math.ceil(totalWords / 200));
+    DOM.heroReadTime.textContent = `${readTimeMinutes} MIN`;
+}
 
-})();
+// ==========================================================================
+// USER INTERFACE CONTROLLER & INTERACTION HANDLERS
+// ==========================================================================
+function updateUIState() {
+    DOM.tbPageStatus.textContent = `PAGE ${STATE.currentPage} OF ${STATE.totalPages}`;
+    DOM.tbCurrentPageInput.value = STATE.currentPage;
+
+    // Update Progress Indicator
+    const progressPercent = (STATE.currentPage / STATE.totalPages) * 100;
+    DOM.progressBar.style.width = `${progressPercent}%`;
+}
+
+function initEventListeners() {
+    // Reader Navigation Transitions
+    DOM.btnOpenReader.addEventListener('click', openReader);
+    DOM.btnHeroContents.addEventListener('click', () => {
+        openReader();
+        openTocModal();
+    });
+    DOM.btnBackHero.addEventListener('click', closeReader);
+
+    // Custom PDF Upload
+    DOM.pdfUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type === 'application/pdf') {
+            DOM.loadingScreen.classList.remove('fade-out');
+            const fileUrl = URL.createObjectURL(file);
+            loadPdfDocument(fileUrl);
+        }
+    });
+
+    // Navigation Controls
+    DOM.tbPrevPage.addEventListener('click', () => STATE.pageFlip.flipPrev());
+    DOM.tbNextPage.addEventListener('click', () => STATE.pageFlip.flipNext());
+    
+    DOM.tbCurrentPageInput.addEventListener('change', (e) => {
+        let val = parseInt(e.target.value);
+        if (val >= 1 && val <= STATE.totalPages) {
+            STATE.pageFlip.turnToPage(val - 1);
+        }
+    });
+
+    // Zoom Controls
+    DOM.tbZoomIn.addEventListener('click', () => setZoom(STATE.zoomScale + 0.15));
+    DOM.tbZoomOut.addEventListener('click', () => setZoom(STATE.zoomScale - 0.15));
+    DOM.tbZoomReset.addEventListener('click', () => setZoom(1.0));
+
+    // Drawer / TOC Modals
+    DOM.tbToggleToc.addEventListener('click', openTocModal);
+    DOM.btnCloseToc.addEventListener('click', closeTocModal);
+    DOM.tocBackdrop.addEventListener('click', closeTocModal);
+
+    // Search Dialog
+    DOM.tbToggleSearch.addEventListener('click', openSearchModal);
+    DOM.btnCloseSearch.addEventListener('click', closeSearchModal);
+    DOM.searchInput.addEventListener('input', handleSearchInput);
+    DOM.btnClearSearch.addEventListener('click', () => {
+        DOM.searchInput.value = '';
+        handleSearchInput();
+    });
+
+    // Toggles
+    DOM.tbToggleSound.addEventListener('click', () => {
+        STATE.soundEnabled = !STATE.soundEnabled;
+        DOM.tbToggleSound.classList.toggle('active', STATE.soundEnabled);
+    });
+
+    DOM.tbToggleTheme.addEventListener('click', toggleTheme);
+
+    DOM.tbToggleFullscreen.addEventListener('click', toggleFullscreen);
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (DOM.readerScreen.classList.contains('hidden')) return;
+
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            STATE.pageFlip.flipNext();
+        } else if (e.key === 'ArrowLeft') {
+            STATE.pageFlip.flipPrev();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            openSearchModal();
+        } else if (e.key === 'Escape') {
+            closeSearchModal();
+            closeTocModal();
+        }
+    });
+}
+
+// Mode Transitions
+function openReader() {
+    DOM.heroScreen.style.display = 'none';
+    DOM.readerScreen.classList.remove('hidden');
+    updateUIState();
+}
+
+function closeReader() {
+    DOM.readerScreen.classList.add('hidden');
+    DOM.heroScreen.style.display = 'flex';
+}
+
+function setZoom(scale) {
+    STATE.zoomScale = Math.min(Math.max(scale, 0.75), 2.0);
+    DOM.flipbookViewport.style.transform = `scale(${STATE.zoomScale})`;
+    DOM.tbZoomLevel.textContent = `${Math.round(STATE.zoomScale * 100)}%`;
+}
+
+function toggleTheme() {
+    STATE.isDarkMode = !STATE.isDarkMode;
+    document.documentElement.setAttribute('data-theme', STATE.isDarkMode ? 'dark' : 'light');
+    DOM.tbToggleTheme.querySelector('i').className = STATE.isDarkMode ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+// ==========================================================================
+// TOC DRAWER & THUMBNAIL RENDERER
+// ==========================================================================
+async function openTocModal() {
+    DOM.tocModal.classList.remove('hidden');
+    if (DOM.tocGrid.children.length === 0) {
+        await generateThumbnails();
+    }
+}
+
+function closeTocModal() {
+    DOM.tocModal.classList.add('hidden');
+}
+
+async function generateThumbnails() {
+    DOM.tocGrid.innerHTML = '';
+
+    for (let pageNum = 1; pageNum <= STATE.totalPages; pageNum++) {
+        const thumbCard = document.createElement('div');
+        thumbCard.className = 'thumb-card';
+        
+        const canvas = document.createElement('canvas');
+        thumbCard.appendChild(canvas);
+
+        const meta = document.createElement('div');
+        meta.className = 'thumb-meta';
+        meta.innerHTML = `<span>Page ${pageNum}</span><i class="fa-solid fa-chevron-right"></i>`;
+        thumbCard.appendChild(meta);
+
+        thumbCard.addEventListener('click', () => {
+            STATE.pageFlip.turnToPage(pageNum - 1);
+            closeTocModal();
+        });
+
+        DOM.tocGrid.appendChild(thumbCard);
+
+        // Render scaled down crisp preview
+        const page = await STATE.pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 0.3 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    }
+}
+
+// ==========================================================================
+// HIGH-PERFORMANCE SEARCH ENGINE
+// ==========================================================================
+function openSearchModal() {
+    DOM.searchModal.showModal();
+    DOM.searchInput.focus();
+}
+
+function closeSearchModal() {
+    DOM.searchModal.close();
+}
+
+function handleSearchInput() {
+    const query = DOM.searchInput.value.trim().toLowerCase();
+    DOM.btnClearSearch.classList.toggle('hidden', query.length === 0);
+
+    if (query.length < 2) {
+        DOM.searchResultsContainer.innerHTML = `
+            <div class="search-empty-state">
+                <i class="fa-solid fa-newspaper"></i>
+                <p>Type keywords to search through Project Heat Waves newsletter content.</p>
+            </div>`;
+        DOM.searchResultsCount.textContent = '0 matches found';
+        return;
+    }
+
+    const matches = [];
+    STATE.searchIndex.forEach(item => {
+        const idx = item.text.toLowerCase().indexOf(query);
+        if (idx !== -1) {
+            const start = Math.max(0, idx - 40);
+            const end = Math.min(item.text.length, idx + 80);
+            const snippet = item.text.substring(start, end);
+            matches.push({ pageNum: item.pageNum, snippet: snippet, query: query });
+        }
+    });
+
+    DOM.searchResultsCount.textContent = `${matches.length} matches found`;
+
+    if (matches.length === 0) {
+        DOM.searchResultsContainer.innerHTML = `
+            <div class="search-empty-state">
+                <i class="fa-solid fa-face-frown"></i>
+                <p>No results found for "${query}"</p>
+            </div>`;
+        return;
+    }
+
+    DOM.searchResultsContainer.innerHTML = matches.map(m => {
+        const highlighted = m.snippet.replace(
+            new RegExp(m.query, 'gi'),
+            match => `<mark>${match}</mark>`
+        );
+        return `
+            <div class="search-result-item" onclick="jumpToPage(${m.pageNum})">
+                <div class="search-result-header">
+                    <span>PAGE ${m.pageNum}</span>
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </div>
+                <div class="search-result-snippet">"...${highlighted}..."</div>
+            </div>`;
+    }).join('');
+}
+
+window.jumpToPage = function(pageNum) {
+    STATE.pageFlip.turnToPage(pageNum - 1);
+    closeSearchModal();
+};
+
+// ==========================================================================
+// HERO 3D PARALLAX INTERACTION
+// ==========================================================================
+function initHeroParallax() {
+    const card = DOM.hero3dCard;
+    if (!card) return;
+
+    document.addEventListener('mousemove', (e) => {
+        if (DOM.heroScreen.style.display === 'none') return;
+
+        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+        
+        card.style.transform = `rotateY(${xAxis - 15}deg) rotateX(${yAxis + 8}deg)`;
+    });
+}
