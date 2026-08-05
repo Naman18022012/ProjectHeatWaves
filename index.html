@@ -1,97 +1,272 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School Newsletter - Digital Flipbook</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>ÉLÉGANCE — International Digital Edition</title>
+  <meta name="description" content="A luxury interactive digital publication reader experience." />
 
-    <!-- PWA & Mobile Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a1e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
 
-    <!-- External Open Source Libraries -->
-    <!-- PDF.js for dynamic PDF reading -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    <!-- StPageFlip for realistic 3D paper page turns -->
-    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  <!-- PageFlip.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <!-- Minimal Header / Floating Controls -->
-    <header class="app-header">
-        <div class="brand-title">School Gazette</div>
-        <div class="header-controls">
-            <button id="btn-toc" title="Table of Contents" class="icon-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-            </button>
-            <button id="btn-search" title="Search Text" class="icon-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </button>
-            <button id="btn-fullscreen" title="Toggle Fullscreen" class="icon-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-            </button>
-        </div>
+  <!-- Background Canvas for Ambient Micro-particles -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- ========================================== -->
+  <!-- 1. CINEMATIC INITIAL LOADING SCREEN        -->
+  <!-- ========================================== -->
+  <div id="loading-screen" class="loading-screen" aria-live="polite">
+    <div class="loader-content">
+      <div class="brand-monogram">É</div>
+      <h1 class="loader-title">É L É G A N C E</h1>
+      <p class="loader-subtitle">Preparing High-Definition Publication</p>
+      
+      <div class="progress-bar-track">
+        <div id="loading-progress-bar" class="progress-bar-fill"></div>
+      </div>
+      
+      <div id="loading-status-text" class="loading-status">Initializing Core Engine…</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. LUXURY HERO LANDING PAGE                -->
+  <!-- ========================================== -->
+  <section id="hero-section" class="hero-section">
+    <header class="hero-navbar">
+      <div class="brand-logo">
+        <span class="logo-mark">É</span>
+        <span class="logo-text">ÉLÉGANCE</span>
+      </div>
+      <div class="hero-nav-actions">
+        <button id="theme-toggle-hero" class="btn-icon-blur" aria-label="Toggle Dark/Light Mode">
+          <i data-lucide="sun" class="icon-sun"></i>
+          <i data-lucide="moon" class="icon-moon"></i>
+        </button>
+        <button id="sound-toggle-hero" class="btn-icon-blur" aria-label="Toggle Sound Effects">
+          <i data-lucide="volume-2" class="icon-sound-on"></i>
+          <i data-lucide="volume-x" class="icon-sound-off hide"></i>
+        </button>
+      </div>
     </header>
 
-    <!-- Main Flipbook Container Stage -->
-    <main class="viewport-stage" id="zoom-stage">
-        <div class="loading-overlay" id="loader">
-            <div class="spinner"></div>
-            <p id="loader-status">Preparing digital publication...</p>
+    <div class="hero-viewport">
+      <div class="hero-info-column">
+        <div class="issue-badge">
+          <span class="badge-dot"></span>
+          ISSUE N° 42 — AUTUMN / WINTER 2026
+        </div>
+        <h1 class="hero-main-title">The Architecture of Tomorrow</h1>
+        <p class="hero-description">
+          An exploration into sustainable luxury, digital spatial design, and the modern renaissance of haute couture.
+        </p>
+        
+        <div class="hero-meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Est. Reading Time</span>
+            <span id="hero-reading-time" class="meta-value">28 Mins</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Total Pages</span>
+            <span id="hero-total-pages" class="meta-value">-- Pages</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Format</span>
+            <span class="meta-value">Ultra-HD Interactive</span>
+          </div>
         </div>
 
-        <div id="flipbook-container" class="flipbook-wrapper">
-            <div id="flipbook"></div>
+        <div class="hero-cta-group">
+          <button id="btn-open-reader" class="btn-primary-luxury">
+            <i data-lucide="book-open"></i>
+            <span>Read Magazine</span>
+          </button>
+          <button id="btn-explore-toc" class="btn-secondary-luxury">
+            <i data-lucide="grid"></i>
+            <span>Explore Contents</span>
+          </button>
         </div>
-    </main>
+      </div>
 
-    <!-- Minimal Footer Indicator -->
-    <footer class="app-footer">
-        <span id="page-indicator">Page -- of --</span>
-    </footer>
-
-    <!-- Search Modal Drawer -->
-    <div class="modal" id="search-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Search Newsletter</h3>
-                <button class="close-btn" id="close-search">&times;</button>
+      <!-- 3D Interactive Tilt Cover -->
+      <div class="hero-cover-column">
+        <div id="3d-cover-wrapper" class="cover-3d-wrapper">
+          <div id="3d-cover-card" class="cover-3d-card">
+            <div class="cover-spine"></div>
+            <div class="cover-surface">
+              <canvas id="hero-cover-canvas"></canvas>
+              <div class="cover-glare"></div>
+              <div class="cover-foil-overlay"></div>
             </div>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Type keyword and press Enter..." />
-            </div>
-            <div class="search-results" id="search-results"></div>
+          </div>
+          <div class="cover-shadow"></div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 3. MAIN MAGAZINE READER WORKSPACE          -->
+  <!-- ========================================== -->
+  <main id="reader-workspace" class="reader-workspace hide-reader" tabindex="-1">
+
+    <!-- FLOATING TOP TOOLBAR -->
+    <header class="floating-toolbar">
+      <div class="toolbar-section toolbar-left">
+        <button id="btn-back-hero" class="toolbar-btn" title="Exit Reader (Esc)">
+          <i data-lucide="arrow-left"></i>
+          <span class="btn-label">Home</span>
+        </button>
+        <div class="toolbar-divider"></div>
+        <button id="btn-toggle-toc" class="toolbar-btn" title="Table of Contents (T)">
+          <i data-lucide="layout-grid"></i>
+          <span class="btn-label">Contents</span>
+        </button>
+        <button id="btn-toggle-search" class="toolbar-btn" title="Search PDF (Ctrl+F)">
+          <i data-lucide="search"></i>
+          <span class="btn-label">Search</span>
+        </button>
+      </div>
+
+      <div class="toolbar-section toolbar-center">
+        <!-- Page Counter & Navigation -->
+        <div class="page-navigation-pill">
+          <button id="btn-prev-page" class="nav-arrow-btn" title="Previous Page (Left Arrow)">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <div class="page-input-container">
+            <input type="number" id="page-number-input" min="1" value="1" aria-label="Current Page Number" />
+            <span class="page-count-separator">/</span>
+            <span id="page-count-total">--</span>
+          </div>
+          <button id="btn-next-page" class="nav-arrow-btn" title="Next Page (Right Arrow)">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-section toolbar-right">
+        <!-- Zoom Controls -->
+        <div class="zoom-controls-pill">
+          <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (-)">
+            <i data-lucide="zoom-out"></i>
+          </button>
+          <span id="zoom-level-indicator" class="zoom-indicator">100%</span>
+          <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (+)">
+            <i data-lucide="zoom-in"></i>
+          </button>
+          <button id="btn-zoom-reset" class="zoom-btn reset-btn" title="Reset Zoom">Fit</button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <button id="theme-toggle-reader" class="toolbar-btn icon-only" title="Toggle Theme">
+          <i data-lucide="sun" class="icon-sun"></i>
+          <i data-lucide="moon" class="icon-moon"></i>
+        </button>
+
+        <button id="sound-toggle-reader" class="toolbar-btn icon-only" title="Toggle Audio SFX">
+          <i data-lucide="volume-2" class="icon-sound-on"></i>
+          <i data-lucide="volume-x" class="icon-sound-off hide"></i>
+        </button>
+
+        <button id="btn-toggle-fullscreen" class="toolbar-btn icon-only" title="Toggle Fullscreen (F)">
+          <i data-lucide="maximize" class="icon-max"></i>
+          <i data-lucide="minimize" class="icon-min hide"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Reading Progress Indicator -->
+    <div class="reading-progress-track">
+      <div id="reading-progress-fill" class="reading-progress-fill"></div>
     </div>
 
-    <!-- Table of Contents Modal Drawer -->
-    <div class="modal" id="toc-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Table of Contents</h3>
-                <button class="close-btn" id="close-toc">&times;</button>
-            </div>
-            <ul class="toc-list" id="toc-list"></ul>
+    <!-- FLIPBOOK CONTAINER CANVAS STAGE -->
+    <div id="flipbook-viewport" class="flipbook-viewport">
+      <div id="flipbook-wrapper" class="flipbook-wrapper">
+        <div id="pageflip-container" class="pageflip-container">
+          <!-- Dynamic PDF Pages inserted here by JS -->
         </div>
+      </div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Register Service Worker for Offline PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('ServiceWorker registered:', reg.scope))
-                    .catch(err => console.error('ServiceWorker registration failed:', err));
-            });
-        }
-    </script>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 4. MODAL & DRAWER OVERLAYS                 -->
+  <!-- ========================================== -->
+
+  <!-- TABLE OF CONTENTS / THUMBNAIL GALLERY DRAWER -->
+  <aside id="toc-drawer" class="drawer-overlay" aria-hidden="true">
+    <div class="drawer-backdrop" id="toc-backdrop"></div>
+    <div class="drawer-content">
+      <header class="drawer-header">
+        <div>
+          <h2 class="drawer-title">Table of Contents</h2>
+          <p class="drawer-subtitle">Click any thumbnail to jump directly to page</p>
+        </div>
+        <button id="btn-close-toc" class="btn-close-drawer" aria-label="Close Gallery">
+          <i data-lucide="x"></i>
+        </button>
+      </header>
+      
+      <div id="toc-gallery-grid" class="toc-gallery-grid">
+        <!-- Skeleton thumbnails injected during initial load -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- DEEP LIVE SEARCH MODAL -->
+  <dialog id="search-modal" class="search-modal">
+    <div id="search-backdrop" class="modal-backdrop"></div>
+    <div class="modal-window">
+      <header class="search-input-wrapper">
+        <i data-lucide="search" class="search-input-icon"></i>
+        <input type="text" id="search-input" placeholder="Search publication keywords, topics, authors..." autocomplete="off" />
+        <button id="btn-clear-search" class="btn-clear-search hide" aria-label="Clear Search">
+          <i data-lucide="x"></i>
+        </button>
+      </header>
+
+      <div class="search-status-bar">
+        <span id="search-results-count">Type at least 2 characters to search</span>
+        <span id="search-spinner" class="search-spinner hide"></span>
+      </div>
+
+      <div id="search-results-list" class="search-results-list">
+        <!-- Search result cards dynamically rendered -->
+        <div class="search-empty-state">
+          <i data-lucide="file-text" class="empty-icon"></i>
+          <p>Search across the full text of all pages instantly.</p>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- AUDIO CONTEXT UNLOCK OVERLAY (For browser autoplay policies) -->
+  <script id="embedded-pdf-config">
+    // Configure default target PDF URL. You can change this path to your PDF file.
+    window.DEFAULT_PDF_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
+  </script>
+  <script src="script.js"></script>
 </body>
 </html>
