@@ -1,312 +1,533 @@
 /* ==========================================================================
-   HEAT WAVES — SIMPLE SCHOOL MAGAZINE ENGINE
+   HEAT WAVES — DIGITAL MAGAZINE ENGINE (PDF.js + StPageFlip Integration)
    ========================================================================== */
 
-// 1. School Magazine Content Database
-const PAGES_DATA = [
-    {
-        pageNumber: 1,
-        title: "HEAT WAVES",
-        tag: "OFFICIAL SCHOOL MAGAZINE",
-        color: "#f97316",
-        heading: "WELCOME TO ISSUE 24!",
-        body: "Your ultimate look into school life, sports victories, student talent, and upcoming events for Term 1.",
-        bullets: ["• Sports Day Highlights", "• Science Fair Winners", "• Creative Writing Showcase"]
-    },
-    {
-        pageNumber: 2,
-        title: "PRINCIPAL'S NOTE",
-        tag: "CAMPUS NEWS",
-        color: "#2563eb",
-        heading: "A Message From Principal Davis",
-        body: "Dear Students & Parents,\n\nWelcome back to another exciting school term! Our students have already accomplished so much in academics, athletics, and the arts. Let's keep this momentum going!",
-        bullets: ["• School Spirit Week: Oct 12th", "• Parent-Teacher Conference: Oct 20th"]
-    },
-    {
-        pageNumber: 3,
-        title: "SPORTS HIGHLIGHTS",
-        tag: "ATHLETICS",
-        color: "#16a34a",
-        heading: "Basketball Team Takes Championship!",
-        body: "The School Wildcats won the regional finals in a dramatic 58-54 victory last Friday! MVP honors went to Marcus Vance for scoring 24 points.",
-        bullets: ["• Next Track Meet: Saturday 9 AM", "• Volleyball Tryouts start Tuesday"]
-    },
-    {
-        pageNumber: 4,
-        title: "ARTS & CREATIVITY",
-        tag: "STUDENT SPOTLIGHT",
-        color: "#9333ea",
-        heading: "Poetry & Art Contest Winners",
-        body: "\"Autumn Leaves\" by Sarah Jenkins (Grade 10):\n\nThe golden leaves begin to fall,\nA crisp cool breeze across the hall.\nWe walk together, side by side,\nWith school day memories held in pride.",
-        bullets: ["• Art Gallery Exhibition in the Library"]
-    },
-    {
-        pageNumber: 5,
-        title: "CLUBS & ACADEMICS",
-        tag: "EXTRACURRICULAR",
-        color: "#0284c7",
-        heading: "Robotics Club Wins First Place",
-        body: "The STEM Robotics team successfully programmed their autonomous rover to complete the maze challenge in under 45 seconds!",
-        bullets: ["• Debate Club meets Wednesdays", "• Drama Club Auditions open next week"]
-    },
-    {
-        pageNumber: 6,
-        title: "BACK COVER",
-        tag: "ANNOUNCEMENTS",
-        color: "#f97316",
-        heading: "Stay Connected!",
-        body: "Thank you for reading this issue of Heat Waves!\n\nGot an article or artwork to submit for Issue 25? Drop by Room 204 or email the student editorial team.",
-        bullets: ["• Instagram: @SchoolHeatWaves", "• Website: school.edu/magazine"]
-    }
-];
+// Configure PDF.js Worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// 2. State Management
-let pageFlip = null;
-let currentPage = 1;
-let soundEnabled = true;
-let audioCtx = null;
-
-// 3. DOM Elements
-const DOM = {
-    heroScreen: document.getElementById('hero-screen'),
-    readerScreen: document.getElementById('reader-screen'),
-    btnLaunch: document.getElementById('btn-launch'),
-    btnTocHero: document.getElementById('btn-toc-hero'),
-    btnBack: document.getElementById('btn-back'),
-    btnPrev: document.getElementById('btn-prev'),
-    btnNext: document.getElementById('btn-next'),
-    btnToggleToc: document.getElementById('btn-toggle-toc'),
-    btnToggleSound: document.getElementById('btn-toggle-sound'),
-    pageCounter: document.getElementById('page-counter'),
-    flipbookWrapper: document.getElementById('flipbook'),
-    tocModal: document.getElementById('toc-modal'),
-    btnCloseToc: document.getElementById('btn-close-toc'),
-    tocGrid: document.getElementById('toc-grid')
+// Global Application State
+const STATE = {
+    pdfDoc: null,
+    totalPages: 0,
+    currentPage: 1,
+    pageFlip: null,
+    searchIndex: [], // Holds extracted page text content
+    isSearching: false,
+    renderedPages: new Set()
 };
 
-// ==========================================================================
-// DRAW SIMPLE CANVAS SCHOOL PAGES
-// ==========================================================================
-function drawSchoolPage(canvas, data) {
-    const width = 500;
-    const height = 700;
+// DOM Elements Registry
+const DOM = {
+    landingScreen: document.getElementById('landing-screen'),
+    readerScreen: document.getElementById('reader-screen'),
+    btnOpenMagazine: document.getElementById('btn-open-magazine'),
+    btnHeroToc: document.getElementById('btn-hero-toc'),
+    btnExitReader: document.getElementById('btn-exit-reader'),
+    btnUploadTrigger: document.getElementById('btn-upload-trigger'),
+    pdfFileInput: document.getElementById('pdf-file-input'),
+    
+    // Stats & Cover
+    heroCoverCanvas: document.getElementById('hero-cover-canvas'),
+    statPages: document.getElementById('stat-pages'),
+    statReadtime: document.getElementById('stat-readtime'),
+    
+    // Flipbook Stage
+    flipbookWrapper: document.getElementById('flipbook-wrapper'),
+    inputPageNumber: document.getElementById('input-page-number'),
+    lblTotalPages: document.getElementById('lbl-total-pages'),
+    readingProgressFill: document.getElementById('reading-progress-fill'),
+    
+    // Navigation Controls
+    btnPrevPage: document.getElementById('btn-prev-page'),
+    btnNextPage: document.getElementById('btn-next-page'),
+    btnFullscreenToggle: document.getElementById('btn-fullscreen-toggle'),
+    
+    // Modals & Triggers
+    modalSearch: document.getElementById('modal-search'),
+    modalToc: document.getElementById('modal-toc'),
+    modalShortcuts: document.getElementById('modal-shortcuts'),
+    btnSearchTrigger: document.getElementById('btn-search-trigger'),
+    btnTocTrigger: document.getElementById('btn-toc-trigger'),
+    btnShortcutsTrigger: document.getElementById('btn-shortcuts-trigger'),
+    btnCloseSearch: document.getElementById('btn-close-search'),
+    btnCloseToc: document.getElementById('btn-close-toc'),
+    btnCloseShortcuts: document.getElementById('btn-close-shortcuts'),
+    
+    // Search Elements
+    searchInput: document.getElementById('search-input'),
+    searchResultsContainer: document.getElementById('search-results-container'),
+    btnClearSearch: document.getElementById('btn-clear-search'),
+    
+    // TOC Container
+    tocGridContainer: document.getElementById('toc-grid-container'),
+    
+    // Toast
+    toastNotification: document.getElementById('toast-notification'),
+    toastMessage: document.getElementById('toast-message')
+};
 
-    canvas.width = width * 2; // Crisp rendering
-    canvas.height = height * 2;
+// Default Sample PDF Backup (Clean multi-page vector magazine document)
+const DEFAULT_PDF_URL = 'https://cdn.jsdelivr.net/gh/mozilla/pdf.js@master/web/compressed.tracemonkey-pldi-09.pdf';
 
-    const ctx = canvas.getContext('2d');
-    ctx.scale(2, 2);
+/* ==========================================================================
+   INITIALIZATION & PDF LOADING
+   ========================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    initEventListeners();
+    loadDefaultMagazine(DEFAULT_PDF_URL);
+});
 
-    // Page Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+// Load PDF Document via URL or ArrayBuffer
+async function loadDefaultMagazine(source) {
+    try {
+        showToast("Loading Heat Waves magazine...");
+        
+        const loadingTask = pdfjsLib.getDocument(source);
+        STATE.pdfDoc = await loadingTask.promise;
+        STATE.totalPages = STATE.pdfDoc.numPages;
 
-    // Top Header Banner
-    ctx.fillStyle = data.color;
-    ctx.fillRect(0, 0, width, 70);
+        // Update Metadata UI
+        DOM.statPages.textContent = STATE.totalPages;
+        DOM.statReadtime.textContent = `${Math.ceil(STATE.totalPages * 1.5)} min`;
+        DOM.lblTotalPages.textContent = `of ${STATE.totalPages}`;
+        DOM.inputPageNumber.max = STATE.totalPages;
 
-    // Header Title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 22px "Fredoka", sans-serif';
-    ctx.fillText(data.title, 30, 42);
+        // Render Hero Cover
+        await renderHeroCover();
 
-    // Tag Badge
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-    ctx.fillRect(width - 180, 20, 150, 30);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '600 10px "Poppins", sans-serif';
-    ctx.fillText(data.tag, width - 170, 39);
+        // Index Text for Search Engine in Background
+        indexPdfText();
 
-    // Content Heading
-    ctx.fillStyle = '#0f172a';
-    ctx.font = '700 18px "Poppins", sans-serif';
-    ctx.fillText(data.heading, 30, 115);
-
-    // Divider Line
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(30, 130);
-    ctx.lineTo(width - 30, 130);
-    ctx.stroke();
-
-    // Body Text (Multi-line)
-    ctx.fillStyle = '#334155';
-    ctx.font = '13px "Poppins", sans-serif';
-
-    const lines = data.body.split('\n');
-    let y = 160;
-
-    lines.forEach(lineStr => {
-        const words = lineStr.split(' ');
-        let currentLine = '';
-
-        words.forEach(word => {
-            const testLine = currentLine + word + ' ';
-            if (ctx.measureText(testLine).width > width - 60) {
-                ctx.fillText(currentLine, 30, y);
-                currentLine = word + ' ';
-                y += 20;
-            } else {
-                currentLine = testLine;
-            }
-        });
-        ctx.fillText(currentLine, 30, y);
-        y += 24;
-    });
-
-    // Bullets Section
-    if (data.bullets) {
-        y += 10;
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '600 13px "Poppins", sans-serif';
-        data.bullets.forEach(bullet => {
-            ctx.fillText(bullet, 30, y);
-            y += 24;
-        });
+        showToast("Magazine loaded successfully");
+    } catch (error) {
+        console.warn("External PDF Load Error / Fallback triggered:", error);
+        generateFallbackMagazine();
     }
-
-    // Page Number Footer
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 11px "Poppins", sans-serif';
-    ctx.fillText(`Heat Waves School Magazine • Page ${data.pageNumber}`, 30, height - 25);
 }
 
-// ==========================================================================
-// FLIPBOOK SETUP
-// ==========================================================================
-function buildMagazine() {
-    DOM.flipbookWrapper.innerHTML = '';
-    DOM.tocGrid.innerHTML = '';
+/* ==========================================================================
+   COVER & FLIPBOOK CANVAS RENDERING
+   ========================================================================== */
 
-    PAGES_DATA.forEach((data) => {
-        // Build Page Sheet
-        const sheet = document.createElement('div');
-        sheet.className = 'page-sheet';
+// Render Page 1 to Landing Hero Cover Canvas
+async function renderHeroCover() {
+    if (!STATE.pdfDoc) return;
+    const page = await STATE.pdfDoc.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+    
+    const canvas = DOM.heroCoverCanvas;
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+        canvasContext: ctx,
+        viewport: viewport
+    }).promise;
+}
+
+// Build and Pre-render All Pages into Flipbook DOM Container
+async function buildFlipbookPages() {
+    DOM.flipbookWrapper.innerHTML = '';
+    
+    // Set optimal dimensions based on screen ratio
+    const isMobile = window.innerWidth < 768;
+    const bookWidth = isMobile ? window.innerWidth * 0.85 : 460;
+    const bookHeight = isMobile ? bookWidth * 1.4 : 640;
+
+    for (let i = 1; i <= STATE.totalPages; i++) {
+        const pageSheet = document.createElement('div');
+        pageSheet.className = 'page-sheet';
+        pageSheet.setAttribute('data-page', i);
 
         const canvas = document.createElement('canvas');
-        drawSchoolPage(canvas, data);
-        sheet.appendChild(canvas);
-        DOM.flipbookWrapper.appendChild(sheet);
+        pageSheet.appendChild(canvas);
+        DOM.flipbookWrapper.appendChild(pageSheet);
 
-        // Build TOC Item
-        const tocItem = document.createElement('div');
-        tocItem.className = 'toc-item';
+        // Render PDF page onto sheet canvas
+        renderPdfPageToCanvas(i, canvas, bookWidth, bookHeight);
+    }
+
+    // Initialize StPageFlip Engine
+    if (STATE.pageFlip) {
+        STATE.pageFlip.destroy();
+    }
+
+    STATE.pageFlip = new St.PageFlip(DOM.flipbookWrapper, {
+        width: bookWidth,
+        height: bookHeight,
+        size: 'fixed',
+        minWidth: 300,
+        maxWidth: 600,
+        minHeight: 400,
+        maxHeight: 800,
+        showCover: true,
+        useMouseEvents: true,
+        maxShadowOpacity: 0.4,
+        flippingTime: 800
+    });
+
+    STATE.pageFlip.loadFromHTML(document.querySelectorAll('.page-sheet'));
+
+    // Bind PageFlip Events
+    STATE.pageFlip.on('flip', (e) => {
+        STATE.currentPage = e.data + 1;
+        updateReaderNavigationUI();
+    });
+}
+
+// Render Individual Page Canvas with High DPI Sharpness
+async function renderPdfPageToCanvas(pageNo, canvas, targetWidth, targetHeight) {
+    if (!STATE.pdfDoc) return;
+
+    try {
+        const page = await STATE.pdfDoc.getPage(pageNo);
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
         
-        const thumbCanvas = document.createElement('canvas');
-        drawSchoolPage(thumbCanvas, data);
+        // Calculate scale to fit page to target dimensions
+        const scale = Math.min(targetWidth / unscaledViewport.width, targetHeight / unscaledViewport.height) * 2; // 2x for Retina display
+        const viewport = page.getViewport({ scale: scale });
 
-        const label = document.createElement('span');
-        label.textContent = `Page ${data.pageNumber}`;
+        const ctx = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-        tocItem.appendChild(thumbCanvas);
-        tocItem.appendChild(label);
-        tocItem.addEventListener('click', () => {
-            closeToc();
-            pageFlip.turnToPage(data.pageNumber - 1);
+        await page.render({
+            canvasContext: ctx,
+            viewport: viewport
+        }).promise;
+    } catch (e) {
+        console.error(`Page ${pageNo} rendering failed:`, e);
+    }
+}
+
+/* ==========================================================================
+   NAVIGATION & UI CONTROLS
+   ========================================================================== */
+
+function openReaderView() {
+    DOM.landingScreen.classList.remove('screen-active');
+    DOM.landingScreen.classList.add('screen-hidden');
+
+    DOM.readerScreen.classList.remove('screen-hidden');
+    DOM.readerScreen.classList.add('screen-active');
+
+    // Build Flipbook if not already initialized
+    if (!STATE.pageFlip) {
+        buildFlipbookPages();
+    }
+}
+
+function exitReaderView() {
+    DOM.readerScreen.classList.remove('screen-active');
+    DOM.readerScreen.classList.add('screen-hidden');
+
+    DOM.landingScreen.classList.remove('screen-hidden');
+    DOM.landingScreen.classList.add('screen-active');
+}
+
+function updateReaderNavigationUI() {
+    DOM.inputPageNumber.value = STATE.currentPage;
+    
+    // Progress bar fill percent
+    const progressPercent = (STATE.currentPage / STATE.totalPages) * 100;
+    DOM.readingProgressFill.style.width = `${progressPercent}%`;
+}
+
+function jumpToPage(pageNo) {
+    let target = parseInt(pageNo, 10);
+    if (isNaN(target)) return;
+    
+    target = Math.max(1, Math.min(target, STATE.totalPages));
+    STATE.currentPage = target;
+
+    if (STATE.pageFlip) {
+        STATE.pageFlip.turnToPage(target - 1);
+    }
+    updateReaderNavigationUI();
+}
+
+/* ==========================================================================
+   SEARCH ENGINE & INDEXING
+   ========================================================================== */
+
+async function indexPdfText() {
+    STATE.searchIndex = [];
+    if (!STATE.pdfDoc) return;
+
+    for (let i = 1; i <= STATE.totalPages; i++) {
+        try {
+            const page = await STATE.pdfDoc.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            
+            STATE.searchIndex.push({
+                pageNumber: i,
+                text: pageText
+            });
+        } catch (e) {
+            console.warn(`Failed to index page ${i}`, e);
+        }
+    }
+}
+
+function performSearch(query) {
+    const cleanQuery = query.trim().toLowerCase();
+    DOM.searchResultsContainer.innerHTML = '';
+
+    if (!cleanQuery) {
+        DOM.searchResultsContainer.innerHTML = `
+            <div class="search-empty-state">
+                <i class="fa-solid fa-compass"></i>
+                <p>Type above to search across all pages of Heat Waves.</p>
+            </div>`;
+        return;
+    }
+
+    const matches = STATE.searchIndex.filter(item => item.text.toLowerCase().includes(cleanQuery));
+
+    if (matches.length === 0) {
+        DOM.searchResultsContainer.innerHTML = `
+            <div class="search-empty-state">
+                <i class="fa-solid fa-face-frown"></i>
+                <p>No results found for "${escapeHtml(query)}".</p>
+            </div>`;
+        return;
+    }
+
+    matches.forEach(match => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+
+        // Extract snippet context
+        const index = match.text.toLowerCase().indexOf(cleanQuery);
+        const start = Math.max(0, index - 40);
+        const end = Math.min(match.text.length, index + cleanQuery.length + 40);
+        let snippet = match.text.substring(start, end);
+
+        // Highlight matched text
+        const regex = new RegExp(`(${cleanQuery})`, 'gi');
+        snippet = snippet.replace(regex, '<mark>$1</mark>');
+
+        item.innerHTML = `
+            <div class="result-page-tag">PAGE ${match.pageNumber}</div>
+            <div class="result-snippet">"...${snippet}..."</div>
+        `;
+
+        item.addEventListener('click', () => {
+            closeAllModals();
+            openReaderView();
+            jumpToPage(match.pageNumber);
         });
 
-        DOM.tocGrid.appendChild(tocItem);
-    });
-
-    // Initialize PageFlip library
-    pageFlip = new St.PageFlip(DOM.flipbookWrapper, {
-        width: 480,
-        height: 680,
-        size: 'stretch',
-        minWidth: 300,
-        maxWidth: 700,
-        minHeight: 400,
-        maxHeight: 900,
-        showCover: true,
-        useMouseEvents: true
-    });
-
-    pageFlip.loadFromHTML(document.querySelectorAll('.page-sheet'));
-
-    pageFlip.on('flip', (e) => {
-        currentPage = e.data + 1;
-        DOM.pageCounter.textContent = `Page ${currentPage} of ${PAGES_DATA.length}`;
-        playPageSound();
+        DOM.searchResultsContainer.appendChild(item);
     });
 }
 
-// Sound Effect
-function playPageSound() {
-    if (!soundEnabled) return;
-    try {
-        if (!audioCtx) {
-            window.AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
+/* ==========================================================================
+   TABLE OF CONTENTS MODAL GENERATOR
+   ========================================================================== */
+
+async function populateTableOfContents() {
+    DOM.tocGridContainer.innerHTML = '';
+    if (!STATE.pdfDoc) return;
+
+    for (let i = 1; i <= STATE.totalPages; i++) {
+        const card = document.createElement('div');
+        card.className = 'toc-card';
+
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.className = 'toc-thumbnail-wrapper';
+
+        const canvas = document.createElement('canvas');
+        thumbWrapper.appendChild(canvas);
+
+        const pageLabel = document.createElement('span');
+        pageLabel.className = 'toc-page-label';
+        pageLabel.textContent = `Page ${i}`;
+
+        card.appendChild(thumbWrapper);
+        card.appendChild(pageLabel);
+
+        card.addEventListener('click', () => {
+            closeAllModals();
+            openReaderView();
+            jumpToPage(i);
+        });
+
+        DOM.tocGridContainer.appendChild(card);
+
+        // Render low-res thumbnail
+        renderPdfPageToCanvas(i, canvas, 140, 200);
+    }
+}
+
+/* ==========================================================================
+   FALLBACK CANVAS GENERATOR (For offline testing or missing PDF)
+   ========================================================================== */
+function generateFallbackMagazine() {
+    STATE.totalPages = 6;
+    DOM.statPages.textContent = "6";
+    DOM.statReadtime.textContent = "9 min";
+    DOM.lblTotalPages.textContent = "of 6";
+    
+    // Draw dummy hero cover canvas
+    const canvas = DOM.heroCoverCanvas;
+    canvas.width = 400;
+    canvas.height = 560;
+    const ctx = canvas.getContext('2d');
+    
+    // Luxury Paper BG
+    ctx.fillStyle = '#fcfaf7';
+    ctx.fillRect(0, 0, 400, 560);
+    
+    ctx.fillStyle = '#c25e40';
+    ctx.fillRect(30, 40, 340, 6);
+    
+    ctx.fillStyle = '#1c1917';
+    ctx.font = 'bold 36px "Cormorant Garamond", serif';
+    ctx.fillText('HEAT WAVES', 30, 90);
+    
+    ctx.fillStyle = '#78716c';
+    ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('ISSUE 04 • DIGITAL EDITION', 30, 115);
+    
+    ctx.fillStyle = '#e2d8ce';
+    ctx.fillRect(30, 150, 340, 240);
+    
+    ctx.fillStyle = '#1c1917';
+    ctx.font = 'bold 20px "Cormorant Garamond", serif';
+    ctx.fillText('The Spirit of Student Journalism', 30, 430);
+
+    showToast("Generated preview fallback issue");
+}
+
+/* ==========================================================================
+   EVENT LISTENERS & KEYBOARD SHORTCUTS
+   ========================================================================== */
+
+function initEventListeners() {
+    // Open Reader
+    DOM.btnOpenMagazine.addEventListener('click', openReaderView);
+    DOM.btnExitReader.addEventListener('click', exitReaderView);
+
+    // Navigation Controls
+    DOM.btnPrevPage.addEventListener('click', () => {
+        if (STATE.pageFlip) STATE.pageFlip.flipPrev();
+    });
+
+    DOM.btnNextPage.addEventListener('click', () => {
+        if (STATE.pageFlip) STATE.pageFlip.flipNext();
+    });
+
+    DOM.inputPageNumber.addEventListener('change', (e) => {
+        jumpToPage(e.target.value);
+    });
+
+    // Custom PDF Upload
+    DOM.btnUploadTrigger.addEventListener('click', () => DOM.pdfFileInput.click());
+    DOM.pdfFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type === 'application/pdf') {
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                loadDefaultMagazine(evt.target.result);
+            };
+            reader.readAsArrayBuffer(file);
         }
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+    });
 
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+    // Fullscreen Toggle
+    DOM.btnFullscreenToggle.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    });
 
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.08);
+    // Modals
+    DOM.btnSearchTrigger.addEventListener('click', () => {
+        DOM.modalSearch.classList.remove('hidden');
+        DOM.searchInput.focus();
+    });
 
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    DOM.btnTocTrigger.addEventListener('click', () => {
+        DOM.modalToc.classList.remove('hidden');
+        populateTableOfContents();
+    });
 
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+    DOM.btnHeroToc.addEventListener('click', () => {
+        DOM.modalToc.classList.remove('hidden');
+        populateTableOfContents();
+    });
 
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
-    } catch (e) {
-        console.warn('Audio blocked:', e);
-    }
+    DOM.btnShortcutsTrigger.addEventListener('click', () => {
+        DOM.modalShortcuts.classList.remove('hidden');
+    });
+
+    DOM.btnCloseSearch.addEventListener('click', closeAllModals);
+    DOM.btnCloseToc.addEventListener('click', closeAllModals);
+    DOM.btnCloseShortcuts.addEventListener('click', closeAllModals);
+
+    // Search Input
+    DOM.searchInput.addEventListener('input', (e) => performSearch(e.target.value));
+    DOM.btnClearSearch.addEventListener('click', () => {
+        DOM.searchInput.value = '';
+        performSearch('');
+    });
+
+    // Global Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAllModals();
+        }
+
+        // If modal active or typing in input, ignore navigation shortcuts
+        if (!DOM.modalSearch.classList.contains('hidden') || document.activeElement.tagName === 'INPUT') {
+            return;
+        }
+
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            if (STATE.pageFlip) STATE.pageFlip.flipNext();
+        } else if (e.key === 'ArrowLeft') {
+            if (STATE.pageFlip) STATE.pageFlip.flipPrev();
+        } else if (e.key === 'f' || e.key === 'F') {
+            DOM.btnFullscreenToggle.click();
+        } else if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            DOM.btnSearchTrigger.click();
+        } else if (e.key === 't' || e.key === 'T') {
+            DOM.btnTocTrigger.click();
+        }
+    });
 }
 
-// Navigation Actions
-function openReader() {
-    DOM.heroScreen.classList.add('hidden');
-    DOM.readerScreen.classList.remove('hidden');
-    if (!pageFlip) {
-        buildMagazine();
-    }
+function closeAllModals() {
+    DOM.modalSearch.classList.add('hidden');
+    DOM.modalToc.classList.add('hidden');
+    DOM.modalShortcuts.classList.add('hidden');
 }
 
-function closeReader() {
-    DOM.readerScreen.classList.add('hidden');
-    DOM.heroScreen.classList.remove('hidden');
+// Toast System
+function showToast(message) {
+    DOM.toastMessage.textContent = message;
+    DOM.toastNotification.classList.remove('hidden');
+
+    setTimeout(() => {
+        DOM.toastNotification.classList.add('hidden');
+    }, 3000);
 }
 
-function openToc() {
-    DOM.tocModal.classList.remove('hidden');
+// Helper: Escape HTML
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function (m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[m];
+    });
 }
-
-function closeToc() {
-    DOM.tocModal.classList.add('hidden');
-}
-
-// Event Listeners
-DOM.btnLaunch.addEventListener('click', openReader);
-DOM.btnTocHero.addEventListener('click', () => {
-    openReader();
-    openToc();
-});
-DOM.btnBack.addEventListener('click', closeReader);
-
-DOM.btnPrev.addEventListener('click', () => pageFlip && pageFlip.flipPrev());
-DOM.btnNext.addEventListener('click', () => pageFlip && pageFlip.flipNext());
-
-DOM.btnToggleToc.addEventListener('click', openToc);
-DOM.btnCloseToc.addEventListener('click', closeToc);
-
-DOM.btnToggleSound.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    DOM.btnToggleSound.classList.toggle('active', soundEnabled);
-});
-
-// Keyboard Navigation
-document.addEventListener('keydown', (e) => {
-    if (!DOM.readerScreen.classList.contains('hidden') && pageFlip) {
-        if (e.key === 'ArrowLeft') pageFlip.flipPrev();
-        if (e.key === 'ArrowRight') pageFlip.flipNext();
-        if (e.key === 'Escape') closeToc();
-    }
-});

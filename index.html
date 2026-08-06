@@ -3,88 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heat Waves — School Magazine</title>
+    <title>HEAT WAVES — Digital Magazine Application</title>
 
-    <!-- Google Fonts & FontAwesome Icons -->
+    <!-- Typography: Cormorant Garamond (Editorial Serif) & Plus Jakarta Sans (Modern UI Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6.5.1 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- CSS -->
+    <!-- Application Stylesheet -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- PageFlip Engine (3D Physics) -->
+    <!-- PDF.js Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- StPageFlip (Realistic 3D Page Turn Engine) -->
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
-<body>
+<body class="theme-warm-paper">
 
-    <!-- ==================== HERO / HOME SCREEN ==================== -->
-    <section id="hero-screen" class="hero-container">
-        <div class="hero-card">
-            <span class="school-badge"><i class="fa-solid fa-graduation-cap"></i> OFFICIAL SCHOOL NEWSLETTER</span>
-            <h1 class="magazine-title">HEAT WAVES</h1>
-            <p class="issue-subtitle">ISSUE 24 • TERM 1 EDITION</p>
-            
-            <p class="hero-desc">
-                Welcome to our student-run school magazine! Dive into sports highlights, creative writing, club updates, and upcoming campus events.
-            </p>
+    <!-- =================================================================== -->
+    <!-- AMBIENT LIGHTING & BACKGROUND GRAPHICS                              -->
+    <!-- =================================================================== -->
+    <div class="ambient-background">
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+        <div class="paper-texture-overlay"></div>
+    </div>
 
-            <div class="hero-buttons">
-                <button id="btn-launch" class="btn-primary">
-                    <i class="fa-solid fa-book-open"></i> READ MAGAZINE
-                </button>
-                <button id="btn-toc-hero" class="btn-secondary">
-                    <i class="fa-solid fa-list"></i> CONTENTS
-                </button>
-            </div>
-        </div>
-    </section>
+    <!-- Hidden File Input for Loading Custom School PDF -->
+    <input type="file" id="pdf-file-input" accept="application/pdf" class="sr-only">
 
-    <!-- ==================== MAGAZINE READER ==================== -->
-    <main id="reader-screen" class="reader-container hidden">
+    <!-- =================================================================== -->
+    <!-- LANDING PAGE / HERO COVER SCREEN                                    -->
+    <!-- =================================================================== -->
+    <section id="landing-screen" class="app-screen screen-active">
         
-        <!-- Top Toolbar -->
-        <header class="top-toolbar">
-            <button id="btn-back" class="tb-btn" title="Back to Home">
-                <i class="fa-solid fa-house"></i> Home
-            </button>
-
-            <div class="page-controls">
-                <button id="btn-prev" class="tb-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></button>
-                <span id="page-counter" class="page-indicator">Page 1 of 6</span>
-                <button id="btn-next" class="tb-btn" title="Next Page"><i class="fa-solid fa-chevron-right"></i></button>
+        <!-- Header Brand Nav -->
+        <header class="landing-header">
+            <div class="brand-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">OFFICIAL SCHOOL PUBLICATION</span>
             </div>
-
-            <div class="toolbar-right">
-                <button id="btn-toggle-toc" class="tb-btn" title="Table of Contents"><i class="fa-solid fa-border-all"></i> Pages</button>
-                <button id="btn-toggle-sound" class="tb-btn active" title="Sound Toggle"><i class="fa-solid fa-volume-high"></i></button>
+            <div class="header-actions">
+                <button id="btn-upload-trigger" class="btn-ghost-sm">
+                    <i class="fa-solid fa-file-arrow-up"></i> Load PDF
+                </button>
             </div>
         </header>
 
-        <!-- Flipbook Viewport -->
-        <div class="flipbook-viewport">
-            <div id="flipbook" class="flipbook-wrapper">
-                <!-- Canvas pages generated dynamically by JavaScript -->
+        <!-- Main Hero Layout -->
+        <main class="hero-content-wrapper">
+            
+            <!-- Left Editorial Text Area -->
+            <div class="hero-editorial">
+                <div class="issue-tagline">ISSUE 04 • SPRING / SUMMER EDITION</div>
+                <h1 class="hero-title">HEAT WAVES</h1>
+                <p class="hero-description">
+                    An immersive digital editorial showcasing student journalism, athletics, literature, and visual arts. Crafted with timeless editorial design and realistic tactile interactions.
+                </p>
+
+                <!-- Magazine Metadata Metrics Grid -->
+                <div class="magazine-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value" id="stat-pages">--</span>
+                        <span class="stat-label">PAGES</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="stat-articles">14</span>
+                        <span class="stat-label">ARTICLES</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="stat-readtime">-- min</span>
+                        <span class="stat-label">READ TIME</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">#04</span>
+                        <span class="stat-label">ISSUE</span>
+                    </div>
+                </div>
+
+                <!-- Primary Control Buttons -->
+                <div class="hero-actions">
+                    <button id="btn-open-magazine" class="btn-primary-luxury">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>OPEN MAGAZINE</span>
+                    </button>
+                    <button id="btn-hero-toc" class="btn-secondary-luxury">
+                        <i class="fa-solid fa-list-ul"></i>
+                        <span>CONTENTS</span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-    </main>
+            <!-- Right 3D Animated Cover Display -->
+            <div class="hero-cover-container">
+                <div class="magazine-3d-stage">
+                    <div id="cover-3d-card" class="magazine-cover-card">
+                        <div class="cover-spine"></div>
+                        <div class="cover-canvas-wrapper">
+                            <canvas id="hero-cover-canvas"></canvas>
+                            <div class="cover-glare"></div>
+                        </div>
+                    </div>
+                    <div class="cover-shadow"></div>
+                </div>
+            </div>
 
-    <!-- ==================== TABLE OF CONTENTS MODAL ==================== -->
-    <div id="toc-modal" class="modal-overlay hidden">
-        <div class="modal-card">
+        </main>
+
+        <!-- Landing Footer -->
+        <footer class="landing-footer">
+            <span>Press <kbd>Space</kbd> or click button to open</span>
+            <span class="separator">•</span>
+            <span>Powered by PDF.js & StPageFlip Engine</span>
+        </footer>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- READER APPLICATION SCREEN                                           -->
+    <!-- =================================================================== -->
+    <section id="reader-screen" class="app-screen screen-hidden">
+
+        <!-- Top Floating Glass Toolbar -->
+        <header class="reader-top-bar">
+            <div class="toolbar-left">
+                <button id="btn-exit-reader" class="tb-icon-btn" title="Exit to Cover (Esc)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="tb-btn-label">Cover</span>
+                </button>
+                <div class="tb-divider"></div>
+                <div class="publication-meta">
+                    <span class="meta-title">HEAT WAVES</span>
+                    <span class="meta-issue">Issue 04</span>
+                </div>
+            </div>
+
+            <!-- Page Control Center -->
+            <div class="toolbar-center">
+                <button id="btn-prev-page" class="tb-icon-btn" title="Previous Page (←)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <div class="page-selector-pill">
+                    <span class="pill-label">Page</span>
+                    <input type="number" id="input-page-number" min="1" value="1">
+                    <span class="pill-total" id="lbl-total-pages">of --</span>
+                </div>
+
+                <button id="btn-next-page" class="tb-icon-btn" title="Next Page (→)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Tools & Views -->
+            <div class="toolbar-right">
+                <button id="btn-search-trigger" class="tb-icon-btn" title="Search Document (S or Cmd+F)">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button id="btn-toc-trigger" class="tb-icon-btn" title="Table of Contents (T)">
+                    <i class="fa-solid fa-table-cells"></i>
+                </button>
+                <div class="tb-divider"></div>
+                <button id="btn-shortcuts-trigger" class="tb-icon-btn" title="Keyboard Shortcuts (?)">
+                    <i class="fa-solid fa-keyboard"></i>
+                </button>
+                <button id="btn-fullscreen-toggle" class="tb-icon-btn" title="Toggle Fullscreen (F)">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+
+            <!-- Reading Progress Bar -->
+            <div class="reading-progress-track">
+                <div id="reading-progress-fill" class="progress-fill"></div>
+            </div>
+        </header>
+
+        <!-- Main Flipbook Viewport Container -->
+        <main class="reader-viewport">
+            <div class="flipbook-outer-stage">
+                <!-- StPageFlip renders dynamic canvases inside this wrapper -->
+                <div id="flipbook-wrapper" class="flipbook-wrapper"></div>
+            </div>
+        </main>
+
+        <!-- Bottom Ambient Status Bar -->
+        <footer class="reader-bottom-bar">
+            <div class="status-left">
+                <span id="lbl-current-spread">Spread View</span>
+            </div>
+            <div class="status-right">
+                <span id="lbl-status-tip">Use Arrow keys or Drag corners to flip pages</span>
+            </div>
+        </footer>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- OVERLAY MODALS                                                      -->
+    <!-- =================================================================== -->
+
+    <!-- Search Modal Drawer -->
+    <div id="modal-search" class="modal-overlay hidden">
+        <div class="modal-card modal-card-search">
             <div class="modal-header">
-                <h2>Quick Page Navigation</h2>
-                <button id="btn-close-toc" class="close-btn">&times;</button>
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search articles, topics, or keywords..." autofocus>
+                    <button id="btn-clear-search" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <button id="btn-close-search" class="btn-close-modal">&times;</button>
             </div>
-            <div id="toc-grid" class="toc-grid">
-                <!-- Thumbnails generated dynamically -->
+            <div class="modal-body">
+                <div id="search-results-container" class="results-list">
+                    <div class="search-empty-state">
+                        <i class="fa-solid fa-compass"></i>
+                        <p>Type above to search across all pages of Heat Waves.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Logic -->
+    <!-- Table of Contents Modal Grid -->
+    <div id="modal-toc" class="modal-overlay hidden">
+        <div class="modal-card modal-card-toc">
+            <div class="modal-header">
+                <div>
+                    <h2>Table of Contents</h2>
+                    <p class="subtitle">Select a thumbnail to jump directly to any page spread.</p>
+                </div>
+                <button id="btn-close-toc" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="toc-grid-container" class="toc-grid">
+                    <!-- Dynamic Page Thumbnails generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="modal-shortcuts" class="modal-overlay hidden">
+        <div class="modal-card modal-card-sm">
+            <div class="modal-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button id="btn-close-shortcuts" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-list">
+                    <div class="shortcut-row"><span class="shortcut-desc">Next Page</span><kbd>→</kbd> or <kbd>Space</kbd></div>
+                    <div class="shortcut-row"><span class="shortcut-desc">Previous Page</span><kbd>←</kbd></div>
+                    <div class="shortcut-row"><span class="shortcut-desc">Open Search</span><kbd>S</kbd> or <kbd>Cmd+F</kbd></div>
+                    <div class="shortcut-row"><span class="shortcut-desc">Table of Contents</span><kbd>T</kbd></div>
+                    <div class="shortcut-row"><span class="shortcut-desc">Toggle Fullscreen</span><kbd>F</kbd></div>
+                    <div class="shortcut-row"><span class="shortcut-desc">Close / Exit</span><kbd>Esc</kbd></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="toast-card hidden">
+        <i class="fa-solid fa-circle-info toast-icon"></i>
+        <span id="toast-message">Notification message</span>
+    </div>
+
+    <!-- Main Logic Script -->
     <script src="script.js"></script>
 </body>
 </html>
