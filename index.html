@@ -1,272 +1,90 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>ÉLÉGANCE — International Digital Edition</title>
-  <meta name="description" content="A luxury interactive digital publication reader experience." />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Waves — School Magazine</title>
 
-  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- PDF.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  </script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
 
-  <!-- PageFlip.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <link rel="stylesheet" href="style.css" />
+    <!-- PageFlip Engine (3D Physics) -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
 <body>
 
-  <!-- Background Canvas for Ambient Micro-particles -->
-  <canvas id="ambient-canvas"></canvas>
+    <!-- ==================== HERO / HOME SCREEN ==================== -->
+    <section id="hero-screen" class="hero-container">
+        <div class="hero-card">
+            <span class="school-badge"><i class="fa-solid fa-graduation-cap"></i> OFFICIAL SCHOOL NEWSLETTER</span>
+            <h1 class="magazine-title">HEAT WAVES</h1>
+            <p class="issue-subtitle">ISSUE 24 • TERM 1 EDITION</p>
+            
+            <p class="hero-desc">
+                Welcome to our student-run school magazine! Dive into sports highlights, creative writing, club updates, and upcoming campus events.
+            </p>
 
-  <!-- ========================================== -->
-  <!-- 1. CINEMATIC INITIAL LOADING SCREEN        -->
-  <!-- ========================================== -->
-  <div id="loading-screen" class="loading-screen" aria-live="polite">
-    <div class="loader-content">
-      <div class="brand-monogram">É</div>
-      <h1 class="loader-title">É L É G A N C E</h1>
-      <p class="loader-subtitle">Preparing High-Definition Publication</p>
-      
-      <div class="progress-bar-track">
-        <div id="loading-progress-bar" class="progress-bar-fill"></div>
-      </div>
-      
-      <div id="loading-status-text" class="loading-status">Initializing Core Engine…</div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 2. LUXURY HERO LANDING PAGE                -->
-  <!-- ========================================== -->
-  <section id="hero-section" class="hero-section">
-    <header class="hero-navbar">
-      <div class="brand-logo">
-        <span class="logo-mark">É</span>
-        <span class="logo-text">ÉLÉGANCE</span>
-      </div>
-      <div class="hero-nav-actions">
-        <button id="theme-toggle-hero" class="btn-icon-blur" aria-label="Toggle Dark/Light Mode">
-          <i data-lucide="sun" class="icon-sun"></i>
-          <i data-lucide="moon" class="icon-moon"></i>
-        </button>
-        <button id="sound-toggle-hero" class="btn-icon-blur" aria-label="Toggle Sound Effects">
-          <i data-lucide="volume-2" class="icon-sound-on"></i>
-          <i data-lucide="volume-x" class="icon-sound-off hide"></i>
-        </button>
-      </div>
-    </header>
-
-    <div class="hero-viewport">
-      <div class="hero-info-column">
-        <div class="issue-badge">
-          <span class="badge-dot"></span>
-          ISSUE N° 42 — AUTUMN / WINTER 2026
-        </div>
-        <h1 class="hero-main-title">The Architecture of Tomorrow</h1>
-        <p class="hero-description">
-          An exploration into sustainable luxury, digital spatial design, and the modern renaissance of haute couture.
-        </p>
-        
-        <div class="hero-meta-grid">
-          <div class="meta-item">
-            <span class="meta-label">Est. Reading Time</span>
-            <span id="hero-reading-time" class="meta-value">28 Mins</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Total Pages</span>
-            <span id="hero-total-pages" class="meta-value">-- Pages</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Format</span>
-            <span class="meta-value">Ultra-HD Interactive</span>
-          </div>
-        </div>
-
-        <div class="hero-cta-group">
-          <button id="btn-open-reader" class="btn-primary-luxury">
-            <i data-lucide="book-open"></i>
-            <span>Read Magazine</span>
-          </button>
-          <button id="btn-explore-toc" class="btn-secondary-luxury">
-            <i data-lucide="grid"></i>
-            <span>Explore Contents</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 3D Interactive Tilt Cover -->
-      <div class="hero-cover-column">
-        <div id="3d-cover-wrapper" class="cover-3d-wrapper">
-          <div id="3d-cover-card" class="cover-3d-card">
-            <div class="cover-spine"></div>
-            <div class="cover-surface">
-              <canvas id="hero-cover-canvas"></canvas>
-              <div class="cover-glare"></div>
-              <div class="cover-foil-overlay"></div>
+            <div class="hero-buttons">
+                <button id="btn-launch" class="btn-primary">
+                    <i class="fa-solid fa-book-open"></i> READ MAGAZINE
+                </button>
+                <button id="btn-toc-hero" class="btn-secondary">
+                    <i class="fa-solid fa-list"></i> CONTENTS
+                </button>
             </div>
-          </div>
-          <div class="cover-shadow"></div>
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ========================================== -->
-  <!-- 3. MAIN MAGAZINE READER WORKSPACE          -->
-  <!-- ========================================== -->
-  <main id="reader-workspace" class="reader-workspace hide-reader" tabindex="-1">
+    <!-- ==================== MAGAZINE READER ==================== -->
+    <main id="reader-screen" class="reader-container hidden">
+        
+        <!-- Top Toolbar -->
+        <header class="top-toolbar">
+            <button id="btn-back" class="tb-btn" title="Back to Home">
+                <i class="fa-solid fa-house"></i> Home
+            </button>
 
-    <!-- FLOATING TOP TOOLBAR -->
-    <header class="floating-toolbar">
-      <div class="toolbar-section toolbar-left">
-        <button id="btn-back-hero" class="toolbar-btn" title="Exit Reader (Esc)">
-          <i data-lucide="arrow-left"></i>
-          <span class="btn-label">Home</span>
-        </button>
-        <div class="toolbar-divider"></div>
-        <button id="btn-toggle-toc" class="toolbar-btn" title="Table of Contents (T)">
-          <i data-lucide="layout-grid"></i>
-          <span class="btn-label">Contents</span>
-        </button>
-        <button id="btn-toggle-search" class="toolbar-btn" title="Search PDF (Ctrl+F)">
-          <i data-lucide="search"></i>
-          <span class="btn-label">Search</span>
-        </button>
-      </div>
+            <div class="page-controls">
+                <button id="btn-prev" class="tb-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="page-counter" class="page-indicator">Page 1 of 6</span>
+                <button id="btn-next" class="tb-btn" title="Next Page"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
 
-      <div class="toolbar-section toolbar-center">
-        <!-- Page Counter & Navigation -->
-        <div class="page-navigation-pill">
-          <button id="btn-prev-page" class="nav-arrow-btn" title="Previous Page (Left Arrow)">
-            <i data-lucide="chevron-left"></i>
-          </button>
-          <div class="page-input-container">
-            <input type="number" id="page-number-input" min="1" value="1" aria-label="Current Page Number" />
-            <span class="page-count-separator">/</span>
-            <span id="page-count-total">--</span>
-          </div>
-          <button id="btn-next-page" class="nav-arrow-btn" title="Next Page (Right Arrow)">
-            <i data-lucide="chevron-right"></i>
-          </button>
-        </div>
-      </div>
+            <div class="toolbar-right">
+                <button id="btn-toggle-toc" class="tb-btn" title="Table of Contents"><i class="fa-solid fa-border-all"></i> Pages</button>
+                <button id="btn-toggle-sound" class="tb-btn active" title="Sound Toggle"><i class="fa-solid fa-volume-high"></i></button>
+            </div>
+        </header>
 
-      <div class="toolbar-section toolbar-right">
-        <!-- Zoom Controls -->
-        <div class="zoom-controls-pill">
-          <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (-)">
-            <i data-lucide="zoom-out"></i>
-          </button>
-          <span id="zoom-level-indicator" class="zoom-indicator">100%</span>
-          <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (+)">
-            <i data-lucide="zoom-in"></i>
-          </button>
-          <button id="btn-zoom-reset" class="zoom-btn reset-btn" title="Reset Zoom">Fit</button>
+        <!-- Flipbook Viewport -->
+        <div class="flipbook-viewport">
+            <div id="flipbook" class="flipbook-wrapper">
+                <!-- Canvas pages generated dynamically by JavaScript -->
+            </div>
         </div>
 
-        <div class="toolbar-divider"></div>
+    </main>
 
-        <button id="theme-toggle-reader" class="toolbar-btn icon-only" title="Toggle Theme">
-          <i data-lucide="sun" class="icon-sun"></i>
-          <i data-lucide="moon" class="icon-moon"></i>
-        </button>
-
-        <button id="sound-toggle-reader" class="toolbar-btn icon-only" title="Toggle Audio SFX">
-          <i data-lucide="volume-2" class="icon-sound-on"></i>
-          <i data-lucide="volume-x" class="icon-sound-off hide"></i>
-        </button>
-
-        <button id="btn-toggle-fullscreen" class="toolbar-btn icon-only" title="Toggle Fullscreen (F)">
-          <i data-lucide="maximize" class="icon-max"></i>
-          <i data-lucide="minimize" class="icon-min hide"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- Top Reading Progress Indicator -->
-    <div class="reading-progress-track">
-      <div id="reading-progress-fill" class="reading-progress-fill"></div>
+    <!-- ==================== TABLE OF CONTENTS MODAL ==================== -->
+    <div id="toc-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Quick Page Navigation</h2>
+                <button id="btn-close-toc" class="close-btn">&times;</button>
+            </div>
+            <div id="toc-grid" class="toc-grid">
+                <!-- Thumbnails generated dynamically -->
+            </div>
+        </div>
     </div>
 
-    <!-- FLIPBOOK CONTAINER CANVAS STAGE -->
-    <div id="flipbook-viewport" class="flipbook-viewport">
-      <div id="flipbook-wrapper" class="flipbook-wrapper">
-        <div id="pageflip-container" class="pageflip-container">
-          <!-- Dynamic PDF Pages inserted here by JS -->
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- ========================================== -->
-  <!-- 4. MODAL & DRAWER OVERLAYS                 -->
-  <!-- ========================================== -->
-
-  <!-- TABLE OF CONTENTS / THUMBNAIL GALLERY DRAWER -->
-  <aside id="toc-drawer" class="drawer-overlay" aria-hidden="true">
-    <div class="drawer-backdrop" id="toc-backdrop"></div>
-    <div class="drawer-content">
-      <header class="drawer-header">
-        <div>
-          <h2 class="drawer-title">Table of Contents</h2>
-          <p class="drawer-subtitle">Click any thumbnail to jump directly to page</p>
-        </div>
-        <button id="btn-close-toc" class="btn-close-drawer" aria-label="Close Gallery">
-          <i data-lucide="x"></i>
-        </button>
-      </header>
-      
-      <div id="toc-gallery-grid" class="toc-gallery-grid">
-        <!-- Skeleton thumbnails injected during initial load -->
-      </div>
-    </div>
-  </aside>
-
-  <!-- DEEP LIVE SEARCH MODAL -->
-  <dialog id="search-modal" class="search-modal">
-    <div id="search-backdrop" class="modal-backdrop"></div>
-    <div class="modal-window">
-      <header class="search-input-wrapper">
-        <i data-lucide="search" class="search-input-icon"></i>
-        <input type="text" id="search-input" placeholder="Search publication keywords, topics, authors..." autocomplete="off" />
-        <button id="btn-clear-search" class="btn-clear-search hide" aria-label="Clear Search">
-          <i data-lucide="x"></i>
-        </button>
-      </header>
-
-      <div class="search-status-bar">
-        <span id="search-results-count">Type at least 2 characters to search</span>
-        <span id="search-spinner" class="search-spinner hide"></span>
-      </div>
-
-      <div id="search-results-list" class="search-results-list">
-        <!-- Search result cards dynamically rendered -->
-        <div class="search-empty-state">
-          <i data-lucide="file-text" class="empty-icon"></i>
-          <p>Search across the full text of all pages instantly.</p>
-        </div>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- AUDIO CONTEXT UNLOCK OVERLAY (For browser autoplay policies) -->
-  <script id="embedded-pdf-config">
-    // Configure default target PDF URL. You can change this path to your PDF file.
-    window.DEFAULT_PDF_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
-  </script>
-  <script src="script.js"></script>
+    <!-- Main Logic -->
+    <script src="script.js"></script>
 </body>
 </html>
