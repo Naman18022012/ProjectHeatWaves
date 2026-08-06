@@ -1,23 +1,59 @@
 /* ==========================================================================
-   HEAT WAVES — DIGITAL MAGAZINE ENGINE (PDF.js + StPageFlip Integration)
+   INKSPIRE — PRESIDENCY SCHOOL DIGITAL MAGAZINE ENGINE
    ========================================================================== */
+
+// ==========================================================================
+// CENTRAL CONFIGURATION OBJECT
+// Edit these values to update publication details without touching core logic
+// ==========================================================================
+const PUBLICATION_CONFIG = {
+    schoolName: "Presidency School",
+    magazineTitle: "INKSPIRE",
+    taglineSub1: "Official Digital Magazine",
+    taglineSub2: "Presidency School",
+    volume: "Volume IV",
+    issueDate: "August 2026",
+    motto: "Inspiring Minds. Celebrating Excellence. Building Tomorrow.",
+    articlesCount: 16,
+    
+    // Default PDF URL (Will attempt load, with fallback if CORS/offline)
+    pdfUrl: 'https://cdn.jsdelivr.net/gh/mozilla/pdf.js@master/web/compressed.tracemonkey-pldi-09.pdf'
+};
 
 // Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// Global Application State
+// Application State
 const STATE = {
     pdfDoc: null,
     totalPages: 0,
     currentPage: 1,
     pageFlip: null,
-    searchIndex: [], // Holds extracted page text content
-    isSearching: false,
-    renderedPages: new Set()
+    searchIndex: [],
+    isLoaded: false
 };
 
-// DOM Elements Registry
+// DOM Registry
 const DOM = {
+    appLoader: document.getElementById('app-loader'),
+    loaderProgressBar: document.getElementById('loader-progress-bar'),
+    
+    // Config Elements
+    lblHeaderSchool: document.getElementById('lbl-header-school'),
+    lblVolume: document.getElementById('lbl-volume'),
+    lblIssueDate: document.getElementById('lbl-issue-date'),
+    lblMainTitle: document.getElementById('lbl-main-title'),
+    lblSub1: document.getElementById('lbl-sub-1'),
+    lblSub2: document.getElementById('lbl-sub-2'),
+    lblMotto: document.getElementById('lbl-motto'),
+    statPages: document.getElementById('stat-pages'),
+    statArticles: document.getElementById('stat-articles'),
+    statReadtime: document.getElementById('stat-readtime'),
+    statEdition: document.getElementById('stat-edition'),
+    lblReaderSchool: document.getElementById('lbl-reader-school'),
+    lblReaderTitle: document.getElementById('lbl-reader-title'),
+    
+    // Screens
     landingScreen: document.getElementById('landing-screen'),
     readerScreen: document.getElementById('reader-screen'),
     btnOpenMagazine: document.getElementById('btn-open-magazine'),
@@ -26,23 +62,19 @@ const DOM = {
     btnUploadTrigger: document.getElementById('btn-upload-trigger'),
     pdfFileInput: document.getElementById('pdf-file-input'),
     
-    // Stats & Cover
+    // Canvas & Stage
     heroCoverCanvas: document.getElementById('hero-cover-canvas'),
-    statPages: document.getElementById('stat-pages'),
-    statReadtime: document.getElementById('stat-readtime'),
-    
-    // Flipbook Stage
     flipbookWrapper: document.getElementById('flipbook-wrapper'),
     inputPageNumber: document.getElementById('input-page-number'),
     lblTotalPages: document.getElementById('lbl-total-pages'),
     readingProgressFill: document.getElementById('reading-progress-fill'),
     
-    // Navigation Controls
+    // Controls
     btnPrevPage: document.getElementById('btn-prev-page'),
     btnNextPage: document.getElementById('btn-next-page'),
     btnFullscreenToggle: document.getElementById('btn-fullscreen-toggle'),
     
-    // Modals & Triggers
+    // Modals
     modalSearch: document.getElementById('modal-search'),
     modalToc: document.getElementById('modal-toc'),
     modalShortcuts: document.getElementById('modal-shortcuts'),
@@ -53,12 +85,12 @@ const DOM = {
     btnCloseToc: document.getElementById('btn-close-toc'),
     btnCloseShortcuts: document.getElementById('btn-close-shortcuts'),
     
-    // Search Elements
+    // Search
     searchInput: document.getElementById('search-input'),
     searchResultsContainer: document.getElementById('search-results-container'),
     btnClearSearch: document.getElementById('btn-clear-search'),
     
-    // TOC Container
+    // TOC
     tocGridContainer: document.getElementById('toc-grid-container'),
     
     // Toast
@@ -66,50 +98,91 @@ const DOM = {
     toastMessage: document.getElementById('toast-message')
 };
 
-// Default Sample PDF Backup (Clean multi-page vector magazine document)
-const DEFAULT_PDF_URL = 'https://cdn.jsdelivr.net/gh/mozilla/pdf.js@master/web/compressed.tracemonkey-pldi-09.pdf';
-
 /* ==========================================================================
-   INITIALIZATION & PDF LOADING
+   INITIALIZATION
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
+    applyConfiguration();
     initEventListeners();
-    loadDefaultMagazine(DEFAULT_PDF_URL);
+    loadMagazine(PUBLICATION_CONFIG.pdfUrl);
 });
 
-// Load PDF Document via URL or ArrayBuffer
-async function loadDefaultMagazine(source) {
+// Bind Config Values into DOM
+function applyConfiguration() {
+    DOM.lblHeaderSchool.textContent = PUBLICATION_CONFIG.schoolName.toUpperCase();
+    DOM.lblVolume.textContent = PUBLICATION_CONFIG.volume.toUpperCase();
+    DOM.lblIssueDate.textContent = PUBLICATION_CONFIG.issueDate.toUpperCase();
+    DOM.lblMainTitle.textContent = PUBLICATION_CONFIG.magazineTitle;
+    DOM.lblSub1.textContent = PUBLICATION_CONFIG.taglineSub1;
+    DOM.lblSub2.textContent = PUBLICATION_CONFIG.taglineSub2;
+    DOM.lblMotto.textContent = PUBLICATION_CONFIG.motto;
+    DOM.statArticles.textContent = PUBLICATION_CONFIG.articlesCount;
+    DOM.statEdition.textContent = PUBLICATION_CONFIG.volume;
+    
+    DOM.lblReaderSchool.textContent = PUBLICATION_CONFIG.schoolName;
+    DOM.lblReaderTitle.textContent = `${PUBLICATION_CONFIG.magazineTitle} — Current Issue`;
+}
+
+// Update Loader Progress Bar
+function updateLoaderProgress(percent) {
+    if (DOM.loaderProgressBar) {
+        DOM.loaderProgressBar.style.width = `${percent}%`;
+    }
+}
+
+// Hide Loading Screen with Smooth Transition
+function hideLoader() {
+    updateLoaderProgress(100);
+    setTimeout(() => {
+        DOM.appLoader.style.opacity = '0';
+        DOM.appLoader.style.visibility = 'hidden';
+    }, 400);
+}
+
+/* ==========================================================================
+   PDF ENGINE LOADING & INDEXING
+   ========================================================================== */
+async function loadMagazine(source) {
     try {
-        showToast("Loading Heat Waves magazine...");
+        updateLoaderProgress(20);
         
         const loadingTask = pdfjsLib.getDocument(source);
+        loadingTask.onProgress = (progressData) => {
+            if (progressData.total > 0) {
+                const percent = Math.min(80, Math.round((progressData.loaded / progressData.total) * 100));
+                updateLoaderProgress(percent);
+            }
+        };
+
         STATE.pdfDoc = await loadingTask.promise;
         STATE.totalPages = STATE.pdfDoc.numPages;
 
-        // Update Metadata UI
+        // Metadata UI updates
         DOM.statPages.textContent = STATE.totalPages;
         DOM.statReadtime.textContent = `${Math.ceil(STATE.totalPages * 1.5)} min`;
         DOM.lblTotalPages.textContent = `of ${STATE.totalPages}`;
         DOM.inputPageNumber.max = STATE.totalPages;
 
-        // Render Hero Cover
+        // Render Landing Page Cover
         await renderHeroCover();
 
-        // Index Text for Search Engine in Background
+        // Index Text for Search
         indexPdfText();
 
-        showToast("Magazine loaded successfully");
+        hideLoader();
+        showToast(`${PUBLICATION_CONFIG.magazineTitle} loaded successfully`);
     } catch (error) {
         console.warn("External PDF Load Error / Fallback triggered:", error);
         generateFallbackMagazine();
+        hideLoader();
     }
 }
 
 /* ==========================================================================
-   COVER & FLIPBOOK CANVAS RENDERING
+   CANVAS RENDERING & PAGEFLIP INTEGRATION
    ========================================================================== */
 
-// Render Page 1 to Landing Hero Cover Canvas
+// Render Page 1 to Landing Cover
 async function renderHeroCover() {
     if (!STATE.pdfDoc) return;
     const page = await STATE.pdfDoc.getPage(1);
@@ -126,11 +199,10 @@ async function renderHeroCover() {
     }).promise;
 }
 
-// Build and Pre-render All Pages into Flipbook DOM Container
+// Build Flipbook Sheets
 async function buildFlipbookPages() {
     DOM.flipbookWrapper.innerHTML = '';
     
-    // Set optimal dimensions based on screen ratio
     const isMobile = window.innerWidth < 768;
     const bookWidth = isMobile ? window.innerWidth * 0.85 : 460;
     const bookHeight = isMobile ? bookWidth * 1.4 : 640;
@@ -144,11 +216,9 @@ async function buildFlipbookPages() {
         pageSheet.appendChild(canvas);
         DOM.flipbookWrapper.appendChild(pageSheet);
 
-        // Render PDF page onto sheet canvas
         renderPdfPageToCanvas(i, canvas, bookWidth, bookHeight);
     }
 
-    // Initialize StPageFlip Engine
     if (STATE.pageFlip) {
         STATE.pageFlip.destroy();
     }
@@ -163,20 +233,19 @@ async function buildFlipbookPages() {
         maxHeight: 800,
         showCover: true,
         useMouseEvents: true,
-        maxShadowOpacity: 0.4,
-        flippingTime: 800
+        maxShadowOpacity: 0.35,
+        flippingTime: 750
     });
 
     STATE.pageFlip.loadFromHTML(document.querySelectorAll('.page-sheet'));
 
-    // Bind PageFlip Events
     STATE.pageFlip.on('flip', (e) => {
         STATE.currentPage = e.data + 1;
         updateReaderNavigationUI();
     });
 }
 
-// Render Individual Page Canvas with High DPI Sharpness
+// Render Individual Page Canvas
 async function renderPdfPageToCanvas(pageNo, canvas, targetWidth, targetHeight) {
     if (!STATE.pdfDoc) return;
 
@@ -184,8 +253,7 @@ async function renderPdfPageToCanvas(pageNo, canvas, targetWidth, targetHeight) 
         const page = await STATE.pdfDoc.getPage(pageNo);
         const unscaledViewport = page.getViewport({ scale: 1.0 });
         
-        // Calculate scale to fit page to target dimensions
-        const scale = Math.min(targetWidth / unscaledViewport.width, targetHeight / unscaledViewport.height) * 2; // 2x for Retina display
+        const scale = Math.min(targetWidth / unscaledViewport.width, targetHeight / unscaledViewport.height) * 2;
         const viewport = page.getViewport({ scale: scale });
 
         const ctx = canvas.getContext('2d');
@@ -197,7 +265,7 @@ async function renderPdfPageToCanvas(pageNo, canvas, targetWidth, targetHeight) 
             viewport: viewport
         }).promise;
     } catch (e) {
-        console.error(`Page ${pageNo} rendering failed:`, e);
+        console.error(`Page ${pageNo} render error:`, e);
     }
 }
 
@@ -212,7 +280,6 @@ function openReaderView() {
     DOM.readerScreen.classList.remove('screen-hidden');
     DOM.readerScreen.classList.add('screen-active');
 
-    // Build Flipbook if not already initialized
     if (!STATE.pageFlip) {
         buildFlipbookPages();
     }
@@ -229,7 +296,6 @@ function exitReaderView() {
 function updateReaderNavigationUI() {
     DOM.inputPageNumber.value = STATE.currentPage;
     
-    // Progress bar fill percent
     const progressPercent = (STATE.currentPage / STATE.totalPages) * 100;
     DOM.readingProgressFill.style.width = `${progressPercent}%`;
 }
@@ -248,7 +314,7 @@ function jumpToPage(pageNo) {
 }
 
 /* ==========================================================================
-   SEARCH ENGINE & INDEXING
+   SEARCH ENGINE
    ========================================================================== */
 
 async function indexPdfText() {
@@ -266,7 +332,7 @@ async function indexPdfText() {
                 text: pageText
             });
         } catch (e) {
-            console.warn(`Failed to index page ${i}`, e);
+            console.warn(`Text indexing error on page ${i}`, e);
         }
     }
 }
@@ -279,7 +345,7 @@ function performSearch(query) {
         DOM.searchResultsContainer.innerHTML = `
             <div class="search-empty-state">
                 <i class="fa-solid fa-compass"></i>
-                <p>Type above to search across all pages of Heat Waves.</p>
+                <p>Type above to search across all pages of ${PUBLICATION_CONFIG.magazineTitle}.</p>
             </div>`;
         return;
     }
@@ -290,7 +356,7 @@ function performSearch(query) {
         DOM.searchResultsContainer.innerHTML = `
             <div class="search-empty-state">
                 <i class="fa-solid fa-face-frown"></i>
-                <p>No results found for "${escapeHtml(query)}".</p>
+                <p>No matches found for "${escapeHtml(query)}".</p>
             </div>`;
         return;
     }
@@ -299,13 +365,11 @@ function performSearch(query) {
         const item = document.createElement('div');
         item.className = 'search-result-item';
 
-        // Extract snippet context
         const index = match.text.toLowerCase().indexOf(cleanQuery);
         const start = Math.max(0, index - 40);
         const end = Math.min(match.text.length, index + cleanQuery.length + 40);
         let snippet = match.text.substring(start, end);
 
-        // Highlight matched text
         const regex = new RegExp(`(${cleanQuery})`, 'gi');
         snippet = snippet.replace(regex, '<mark>$1</mark>');
 
@@ -325,7 +389,7 @@ function performSearch(query) {
 }
 
 /* ==========================================================================
-   TABLE OF CONTENTS MODAL GENERATOR
+   TABLE OF CONTENTS GRID
    ========================================================================== */
 
 async function populateTableOfContents() {
@@ -357,13 +421,12 @@ async function populateTableOfContents() {
 
         DOM.tocGridContainer.appendChild(card);
 
-        // Render low-res thumbnail
         renderPdfPageToCanvas(i, canvas, 140, 200);
     }
 }
 
 /* ==========================================================================
-   FALLBACK CANVAS GENERATOR (For offline testing or missing PDF)
+   FALLBACK CANVAS GENERATOR
    ========================================================================== */
 function generateFallbackMagazine() {
     STATE.totalPages = 6;
@@ -371,33 +434,33 @@ function generateFallbackMagazine() {
     DOM.statReadtime.textContent = "9 min";
     DOM.lblTotalPages.textContent = "of 6";
     
-    // Draw dummy hero cover canvas
     const canvas = DOM.heroCoverCanvas;
     canvas.width = 400;
     canvas.height = 560;
     const ctx = canvas.getContext('2d');
     
-    // Luxury Paper BG
-    ctx.fillStyle = '#fcfaf7';
+    // Presidency Green Background
+    ctx.fillStyle = '#0c3125';
     ctx.fillRect(0, 0, 400, 560);
     
-    ctx.fillStyle = '#c25e40';
-    ctx.fillRect(30, 40, 340, 6);
+    // Gold Accent Bar
+    ctx.fillStyle = '#c39b4e';
+    ctx.fillRect(35, 50, 330, 4);
     
-    ctx.fillStyle = '#1c1917';
-    ctx.font = 'bold 36px "Cormorant Garamond", serif';
-    ctx.fillText('HEAT WAVES', 30, 90);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 38px "Cormorant Garamond", serif';
+    ctx.fillText(PUBLICATION_CONFIG.magazineTitle, 35, 100);
     
-    ctx.fillStyle = '#78716c';
+    ctx.fillStyle = '#c39b4e';
     ctx.font = '12px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('ISSUE 04 • DIGITAL EDITION', 30, 115);
+    ctx.fillText(`${PUBLICATION_CONFIG.schoolName.toUpperCase()} • ${PUBLICATION_CONFIG.volume.toUpperCase()}`, 35, 125);
     
-    ctx.fillStyle = '#e2d8ce';
-    ctx.fillRect(30, 150, 340, 240);
+    ctx.fillStyle = '#154737';
+    ctx.fillRect(35, 160, 330, 240);
     
-    ctx.fillStyle = '#1c1917';
-    ctx.font = 'bold 20px "Cormorant Garamond", serif';
-    ctx.fillText('The Spirit of Student Journalism', 30, 430);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'italic 18px "Cormorant Garamond", serif';
+    ctx.fillText(PUBLICATION_CONFIG.motto, 35, 430);
 
     showToast("Generated preview fallback issue");
 }
@@ -407,11 +470,11 @@ function generateFallbackMagazine() {
    ========================================================================== */
 
 function initEventListeners() {
-    // Open Reader
+    // Open/Close Reader
     DOM.btnOpenMagazine.addEventListener('click', openReaderView);
     DOM.btnExitReader.addEventListener('click', exitReaderView);
 
-    // Navigation Controls
+    // Page Flipping Controls
     DOM.btnPrevPage.addEventListener('click', () => {
         if (STATE.pageFlip) STATE.pageFlip.flipPrev();
     });
@@ -424,14 +487,14 @@ function initEventListeners() {
         jumpToPage(e.target.value);
     });
 
-    // Custom PDF Upload
+    // File Upload Handler
     DOM.btnUploadTrigger.addEventListener('click', () => DOM.pdfFileInput.click());
     DOM.pdfFileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file && file.type === 'application/pdf') {
             const reader = new FileReader();
             reader.onload = function (evt) {
-                loadDefaultMagazine(evt.target.result);
+                loadMagazine(evt.target.result);
             };
             reader.readAsArrayBuffer(file);
         }
@@ -470,20 +533,19 @@ function initEventListeners() {
     DOM.btnCloseToc.addEventListener('click', closeAllModals);
     DOM.btnCloseShortcuts.addEventListener('click', closeAllModals);
 
-    // Search Input
+    // Search
     DOM.searchInput.addEventListener('input', (e) => performSearch(e.target.value));
     DOM.btnClearSearch.addEventListener('click', () => {
         DOM.searchInput.value = '';
         performSearch('');
     });
 
-    // Global Keyboard Shortcuts
+    // Global Key Shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeAllModals();
         }
 
-        // If modal active or typing in input, ignore navigation shortcuts
         if (!DOM.modalSearch.classList.contains('hidden') || document.activeElement.tagName === 'INPUT') {
             return;
         }
@@ -509,14 +571,14 @@ function closeAllModals() {
     DOM.modalShortcuts.classList.add('hidden');
 }
 
-// Toast System
+// Toast Feedback System
 function showToast(message) {
     DOM.toastMessage.textContent = message;
     DOM.toastNotification.classList.remove('hidden');
 
     setTimeout(() => {
         DOM.toastNotification.classList.add('hidden');
-    }, 3000);
+    }, 3200);
 }
 
 // Helper: Escape HTML

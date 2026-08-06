@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HEAT WAVES — Digital Magazine Application</title>
+    <title>INKSPIRE — Presidency School Digital Magazine</title>
 
     <!-- Typography: Cormorant Garamond (Editorial Serif) & Plus Jakarta Sans (Modern UI Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,20 +22,37 @@
     <!-- StPageFlip (Realistic 3D Page Turn Engine) -->
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
-<body class="theme-warm-paper">
+<body class="theme-presidency">
 
-    <!-- =================================================================== -->
-    <!-- AMBIENT LIGHTING & BACKGROUND GRAPHICS                              -->
-    <!-- =================================================================== -->
+    <!-- Ambient Background Lighting -->
     <div class="ambient-background">
-        <div class="ambient-orb orb-1"></div>
-        <div class="ambient-orb orb-2"></div>
-        <div class="ambient-orb orb-3"></div>
+        <div class="ambient-orb orb-presidency-1"></div>
+        <div class="ambient-orb orb-presidency-2"></div>
+        <div class="ambient-orb orb-gold-3"></div>
         <div class="paper-texture-overlay"></div>
     </div>
 
-    <!-- Hidden File Input for Loading Custom School PDF -->
+    <!-- Hidden Input for Custom PDF Upload -->
     <input type="file" id="pdf-file-input" accept="application/pdf" class="sr-only">
+
+    <!-- =================================================================== -->
+    <!-- ELEGANT INITIAL LOADING SCREEN                                      -->
+    <!-- =================================================================== -->
+    <div id="app-loader" class="loader-overlay">
+        <div class="loader-card">
+            <div class="loader-crest">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="loader-brand" id="loader-school-name">PRESIDENCY SCHOOL</div>
+            <div class="loader-title" id="loader-magazine-title">INKSPIRE</div>
+            <p class="loader-subtext">Loading Digital Publication Platform...</p>
+            
+            <div class="loader-progress-container">
+                <div id="loader-progress-bar" class="loader-progress-fill"></div>
+            </div>
+            <div class="loader-spinner"></div>
+        </div>
+    </div>
 
     <!-- =================================================================== -->
     <!-- LANDING PAGE / HERO COVER SCREEN                                    -->
@@ -46,11 +63,11 @@
         <header class="landing-header">
             <div class="brand-badge">
                 <span class="badge-dot"></span>
-                <span class="badge-text">OFFICIAL SCHOOL PUBLICATION</span>
+                <span class="badge-text" id="lbl-header-school">PRESIDENCY SCHOOL</span>
             </div>
             <div class="header-actions">
-                <button id="btn-upload-trigger" class="btn-ghost-sm">
-                    <i class="fa-solid fa-file-arrow-up"></i> Load PDF
+                <button id="btn-upload-trigger" class="btn-ghost-sm" title="Load Custom PDF">
+                    <i class="fa-solid fa-file-arrow-up"></i> <span>Load PDF</span>
                 </button>
             </div>
         </header>
@@ -60,10 +77,20 @@
             
             <!-- Left Editorial Text Area -->
             <div class="hero-editorial">
-                <div class="issue-tagline">ISSUE 04 • SPRING / SUMMER EDITION</div>
-                <h1 class="hero-title">HEAT WAVES</h1>
-                <p class="hero-description">
-                    An immersive digital editorial showcasing student journalism, athletics, literature, and visual arts. Crafted with timeless editorial design and realistic tactile interactions.
+                <div class="issue-tagline">
+                    <span id="lbl-volume">VOLUME IV</span> • <span id="lbl-issue-date">AUGUST 2026</span>
+                </div>
+                
+                <h1 class="hero-title" id="lbl-main-title">INKSPIRE</h1>
+                
+                <div class="hero-subtitle">
+                    <span id="lbl-sub-1">Official Digital Magazine</span>
+                    <span class="bullet-divider">•</span>
+                    <span id="lbl-sub-2">Presidency School</span>
+                </div>
+
+                <p class="hero-motto" id="lbl-motto">
+                    Inspiring Minds. Celebrating Excellence. Building Tomorrow.
                 </p>
 
                 <!-- Magazine Metadata Metrics Grid -->
@@ -73,7 +100,7 @@
                         <span class="stat-label">PAGES</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value" id="stat-articles">14</span>
+                        <span class="stat-value" id="stat-articles">--</span>
                         <span class="stat-label">ARTICLES</span>
                     </div>
                     <div class="stat-card">
@@ -81,8 +108,8 @@
                         <span class="stat-label">READ TIME</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">#04</span>
-                        <span class="stat-label">ISSUE</span>
+                        <span class="stat-value" id="stat-edition">VOL IV</span>
+                        <span class="stat-label">EDITION</span>
                     </div>
                 </div>
 
@@ -90,11 +117,11 @@
                 <div class="hero-actions">
                     <button id="btn-open-magazine" class="btn-primary-luxury">
                         <i class="fa-solid fa-book-open"></i>
-                        <span>OPEN MAGAZINE</span>
+                        <span>Open Magazine</span>
                     </button>
                     <button id="btn-hero-toc" class="btn-secondary-luxury">
                         <i class="fa-solid fa-list-ul"></i>
-                        <span>CONTENTS</span>
+                        <span>Browse Contents</span>
                     </button>
                 </div>
             </div>
@@ -119,7 +146,7 @@
         <footer class="landing-footer">
             <span>Press <kbd>Space</kbd> or click button to open</span>
             <span class="separator">•</span>
-            <span>Powered by PDF.js & StPageFlip Engine</span>
+            <span>Presidency School Publishing Platform</span>
         </footer>
 
     </section>
@@ -132,14 +159,14 @@
         <!-- Top Floating Glass Toolbar -->
         <header class="reader-top-bar">
             <div class="toolbar-left">
-                <button id="btn-exit-reader" class="tb-icon-btn" title="Exit to Cover (Esc)">
+                <button id="btn-exit-reader" class="tb-icon-btn" title="Back to Cover (Esc)">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span class="tb-btn-label">Cover</span>
                 </button>
                 <div class="tb-divider"></div>
                 <div class="publication-meta">
-                    <span class="meta-title">HEAT WAVES</span>
-                    <span class="meta-issue">Issue 04</span>
+                    <span class="meta-title" id="lbl-reader-school">Presidency School</span>
+                    <span class="meta-issue" id="lbl-reader-title">INKSPIRE — Current Issue</span>
                 </div>
             </div>
 
@@ -164,9 +191,11 @@
             <div class="toolbar-right">
                 <button id="btn-search-trigger" class="tb-icon-btn" title="Search Document (S or Cmd+F)">
                     <i class="fa-solid fa-magnifying-glass"></i>
+                    <span class="tb-btn-label">Search</span>
                 </button>
                 <button id="btn-toc-trigger" class="tb-icon-btn" title="Table of Contents (T)">
                     <i class="fa-solid fa-table-cells"></i>
+                    <span class="tb-btn-label">Contents</span>
                 </button>
                 <div class="tb-divider"></div>
                 <button id="btn-shortcuts-trigger" class="tb-icon-btn" title="Keyboard Shortcuts (?)">
@@ -186,7 +215,6 @@
         <!-- Main Flipbook Viewport Container -->
         <main class="reader-viewport">
             <div class="flipbook-outer-stage">
-                <!-- StPageFlip renders dynamic canvases inside this wrapper -->
                 <div id="flipbook-wrapper" class="flipbook-wrapper"></div>
             </div>
         </main>
@@ -194,10 +222,10 @@
         <!-- Bottom Ambient Status Bar -->
         <footer class="reader-bottom-bar">
             <div class="status-left">
-                <span id="lbl-current-spread">Spread View</span>
+                <span id="lbl-current-spread">Interactive Spread Mode</span>
             </div>
             <div class="status-right">
-                <span id="lbl-status-tip">Use Arrow keys or Drag corners to flip pages</span>
+                <span>Use Arrow keys or Drag corners to flip pages</span>
             </div>
         </footer>
 
@@ -207,7 +235,7 @@
     <!-- OVERLAY MODALS                                                      -->
     <!-- =================================================================== -->
 
-    <!-- Search Modal Drawer -->
+    <!-- Search Modal Window -->
     <div id="modal-search" class="modal-overlay hidden">
         <div class="modal-card modal-card-search">
             <div class="modal-header">
@@ -222,7 +250,7 @@
                 <div id="search-results-container" class="results-list">
                     <div class="search-empty-state">
                         <i class="fa-solid fa-compass"></i>
-                        <p>Type above to search across all pages of Heat Waves.</p>
+                        <p>Type above to search across all pages of INKSPIRE.</p>
                     </div>
                 </div>
             </div>
@@ -235,7 +263,7 @@
             <div class="modal-header">
                 <div>
                     <h2>Table of Contents</h2>
-                    <p class="subtitle">Select a thumbnail to jump directly to any page spread.</p>
+                    <p class="subtitle">Select any page thumbnail to jump directly to that page spread.</p>
                 </div>
                 <button id="btn-close-toc" class="btn-close-modal">&times;</button>
             </div>
@@ -269,7 +297,7 @@
 
     <!-- Toast Notification -->
     <div id="toast-notification" class="toast-card hidden">
-        <i class="fa-solid fa-circle-info toast-icon"></i>
+        <i class="fa-solid fa-circle-check toast-icon"></i>
         <span id="toast-message">Notification message</span>
     </div>
 

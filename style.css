@@ -1,42 +1,42 @@
 /* ==========================================================================
-   HEAT WAVES — LUXURY DIGITAL MAGAZINE READER STYLESHEET
-   Design System: Apple Books x Adobe InDesign x Linear
+   INKSPIRE — PRESIDENCY SCHOOL DIGITAL MAGAZINE STYLESHEET
+   Design System: Deep Presidency Green, Gold Accents, Luxury Silk Surfaces
    ========================================================================== */
 
 :root {
-    /* Palette: Warm Paper & Editorial Luxury */
-    --color-bg-paper: #fcfaf7;
-    --color-bg-surface: #f4f0ea;
-    --color-bg-card: rgba(255, 255, 255, 0.75);
-    --color-bg-dark: #121110;
+    /* Color Palette: Presidency School Identity */
+    --color-green-deep: #0c3125;
+    --color-green-mid: #154737;
+    --color-green-light: #236350;
     
-    --color-text-main: #1c1917;
-    --color-text-muted: #78716c;
-    --color-text-light: #a8a29e;
+    --color-gold: #c39b4e;
+    --color-gold-hover: #d8b264;
+    --color-gold-subtle: rgba(195, 155, 78, 0.15);
     
-    --color-terracotta: #c25e40;
-    --color-terracotta-hover: #a84e32;
-    --color-gold: #b45309;
-    --color-gold-light: #fef3c7;
+    --color-bg-paper: #f2f6f4;
+    --color-bg-surface: #e8f0ec;
+    --color-bg-card: rgba(255, 255, 255, 0.85);
     
-    --color-border-subtle: rgba(214, 206, 194, 0.6);
-    --color-border-strong: #d6ce2;
+    --color-text-dark: #0e1814;
+    --color-text-muted: #52665e;
+    --color-text-light: #8a9c94;
+    
+    --color-border-subtle: rgba(195, 155, 78, 0.25);
+    --color-border-green: rgba(12, 49, 37, 0.15);
     
     /* Typography */
     --font-serif: 'Cormorant Garamond', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     
-    /* Shadows & Depths */
-    --shadow-soft: 0 10px 30px -10px rgba(28, 25, 23, 0.08);
-    --shadow-medium: 0 20px 40px -15px rgba(28, 25, 23, 0.15);
-    --shadow-luxury-book: 0 30px 60px -20px rgba(18, 17, 16, 0.35);
+    /* Depths & Easing */
+    --shadow-soft: 0 10px 30px -10px rgba(12, 49, 37, 0.08);
+    --shadow-medium: 0 20px 40px -15px rgba(12, 49, 37, 0.15);
+    --shadow-luxury-book: 0 30px 60px -20px rgba(12, 49, 37, 0.35);
     
-    /* Glassmorphism */
-    --glass-bg: rgba(252, 250, 247, 0.82);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+    --glass-bg: rgba(242, 246, 244, 0.85);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.8);
     --glass-blur: blur(20px) saturate(180%);
     
-    /* Transitions */
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --transition-fast: 0.2s var(--ease-out-expo);
     --transition-smooth: 0.4s var(--ease-out-expo);
@@ -56,7 +56,7 @@ body, html {
     height: 100%;
     overflow: hidden;
     background-color: var(--color-bg-paper);
-    color: var(--color-text-main);
+    color: var(--color-text-dark);
     font-family: var(--font-sans);
     user-select: none;
 }
@@ -86,53 +86,129 @@ body, html {
 .ambient-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.45;
-    animation: floatOrb 20s infinite alternate ease-in-out;
+    filter: blur(120px);
+    opacity: 0.35;
+    animation: floatOrb 22s infinite alternate ease-in-out;
 }
 
-.orb-1 {
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, #fde68a 0%, rgba(253, 230, 138, 0) 70%);
-    top: -100px;
-    left: -100px;
-}
-
-.orb-2 {
+.orb-presidency-1 {
     width: 700px;
     height: 700px;
-    background: radial-gradient(circle, #fed7aa 0%, rgba(254, 215, 170, 0) 70%);
-    bottom: -150px;
-    right: -100px;
-    animation-delay: -7s;
+    background: radial-gradient(circle, #236350 0%, rgba(35, 99, 80, 0) 70%);
+    top: -150px;
+    left: -150px;
 }
 
-.orb-3 {
+.orb-presidency-2 {
+    width: 650px;
+    height: 650px;
+    background: radial-gradient(circle, #154737 0%, rgba(21, 71, 55, 0) 70%);
+    bottom: -150px;
+    right: -100px;
+    animation-delay: -8s;
+}
+
+.orb-gold-3 {
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, #fbcfe8 0%, rgba(251, 207, 232, 0) 70%);
+    background: radial-gradient(circle, #c39b4e 0%, rgba(195, 155, 78, 0) 70%);
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation-delay: -14s;
+    opacity: 0.2;
+    animation-delay: -15s;
 }
 
 .paper-texture-overlay {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(28, 25, 23, 0.03) 1px, transparent 0);
+    background-image: radial-gradient(rgba(12, 49, 37, 0.04) 1px, transparent 0);
     background-size: 24px 24px;
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
 @keyframes floatOrb {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(50px, 40px) scale(1.08); }
+    100% { transform: translate(60px, 50px) scale(1.08); }
 }
 
 /* ==========================================================================
-   APPLICATION SCREENS & SCREEN TRANSITIONS
+   INITIAL ELEGANT LOADING SCREEN
+   ========================================================================== */
+.loader-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--color-green-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s var(--ease-out-expo), visibility 0.8s;
+}
+
+.loader-card {
+    text-align: center;
+    color: white;
+    max-width: 420px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loader-crest {
+    font-size: 2.8rem;
+    color: var(--color-gold);
+    margin-bottom: 16px;
+    animation: pulseCrest 2s infinite ease-in-out;
+}
+
+.loader-brand {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--color-gold);
+    margin-bottom: 8px;
+}
+
+.loader-title {
+    font-family: var(--font-serif);
+    font-size: 3.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+    margin-bottom: 12px;
+}
+
+.loader-subtext {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 28px;
+}
+
+.loader-progress-container {
+    width: 220px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.loader-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--color-gold);
+    transition: width 0.4s ease;
+}
+
+@keyframes pulseCrest {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* ==========================================================================
+   APPLICATION SCREENS & TRANSITIONS
    ========================================================================== */
 .app-screen {
     position: absolute;
@@ -140,7 +216,7 @@ body, html {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    transition: opacity 0.5s var(--ease-out-expo), transform 0.5s var(--ease-out-expo);
+    transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo);
 }
 
 .screen-active {
@@ -159,7 +235,7 @@ body, html {
    LANDING PAGE / HERO COVER SCREEN
    ========================================================================== */
 #landing-screen {
-    padding: 40px 60px;
+    padding: 36px 60px;
     justify-content: space-between;
 }
 
@@ -176,7 +252,7 @@ body, html {
     gap: 10px;
     background: var(--color-bg-card);
     border: var(--color-border-subtle) 1px solid;
-    padding: 8px 18px;
+    padding: 8px 20px;
     border-radius: 100px;
     box-shadow: var(--shadow-soft);
     backdrop-filter: var(--glass-blur);
@@ -185,40 +261,43 @@ body, html {
 .badge-dot {
     width: 8px;
     height: 8px;
-    background-color: var(--color-terracotta);
+    background-color: var(--color-gold);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--color-terracotta);
+    box-shadow: 0 0 10px var(--color-gold);
 }
 
 .badge-text {
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
-    color: var(--color-text-main);
+    letter-spacing: 1.8px;
+    color: var(--color-green-deep);
 }
 
 .btn-ghost-sm {
     background: transparent;
-    border: 1px solid var(--color-border-subtle);
-    padding: 8px 16px;
+    border: 1px solid var(--color-border-green);
+    padding: 8px 18px;
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text-muted);
     cursor: pointer;
     transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-ghost-sm:hover {
     background: white;
-    color: var(--color-text-main);
-    border-color: var(--color-text-main);
+    color: var(--color-green-deep);
+    border-color: var(--color-green-deep);
 }
 
 /* Main Hero Layout Grid */
 .hero-content-wrapper {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 1.15fr 0.85fr;
     align-items: center;
     gap: 60px;
     max-width: 1400px;
@@ -231,33 +310,48 @@ body, html {
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: var(--color-terracotta);
-    margin-bottom: 12px;
+    color: var(--color-gold);
+    margin-bottom: 8px;
 }
 
 .hero-title {
     font-family: var(--font-serif);
-    font-size: 5.5rem;
+    font-size: 6rem;
     font-weight: 700;
-    line-height: 0.95;
+    line-height: 0.92;
     letter-spacing: -1.5px;
-    color: var(--color-text-main);
-    margin-bottom: 24px;
+    color: var(--color-green-deep);
+    margin-bottom: 12px;
 }
 
-.hero-description {
-    font-size: 1.15rem;
+.hero-subtitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-green-mid);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bullet-divider {
+    color: var(--color-gold);
+}
+
+.hero-motto {
+    font-size: 1.05rem;
     line-height: 1.6;
     color: var(--color-text-muted);
     max-width: 520px;
     margin-bottom: 36px;
+    font-style: italic;
 }
 
 .magazine-stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    max-width: 520px;
+    max-width: 540px;
     margin-bottom: 40px;
 }
 
@@ -265,7 +359,7 @@ body, html {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
     padding: 16px 12px;
-    border-radius: 12px;
+    border-radius: 14px;
     text-align: center;
     box-shadow: var(--shadow-soft);
     backdrop-filter: var(--glass-blur);
@@ -274,9 +368,9 @@ body, html {
 .stat-value {
     display: block;
     font-family: var(--font-serif);
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     font-weight: 700;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
 }
 
 .stat-label {
@@ -290,18 +384,18 @@ body, html {
 .hero-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 18px;
 }
 
 .btn-primary-luxury {
-    background: var(--color-text-main);
-    color: var(--color-bg-paper);
+    background: var(--color-green-deep);
+    color: white;
     border: none;
-    padding: 18px 36px;
+    padding: 18px 38px;
     border-radius: 14px;
     font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -311,14 +405,15 @@ body, html {
 }
 
 .btn-primary-luxury:hover {
-    background: var(--color-terracotta);
+    background: var(--color-green-mid);
+    color: var(--color-gold-hover);
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(194, 94, 64, 0.3);
+    box-shadow: 0 15px 30px rgba(12, 49, 37, 0.3);
 }
 
 .btn-secondary-luxury {
     background: var(--color-bg-card);
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
     border: 1px solid var(--color-border-subtle);
     padding: 18px 32px;
     border-radius: 14px;
@@ -334,11 +429,12 @@ body, html {
 
 .btn-secondary-luxury:hover {
     background: white;
-    border-color: var(--color-text-main);
+    border-color: var(--color-gold);
+    color: var(--color-gold);
     transform: translateY(-2px);
 }
 
-/* Right 3D Cover Display Stage */
+/* Right 3D Cover Stage */
 .hero-cover-container {
     display: flex;
     justify-content: center;
@@ -363,7 +459,7 @@ body, html {
     transition: transform 0.6s var(--ease-out-expo);
     transform-style: preserve-3d;
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(195, 155, 78, 0.3);
 }
 
 .magazine-3d-stage:hover .magazine-cover-card {
@@ -375,8 +471,8 @@ body, html {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 18px;
-    background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.2) 50%, rgba(0,0,0,0.15) 100%);
+    width: 20px;
+    background: linear-gradient(90deg, rgba(12,49,37,0.4) 0%, rgba(255,255,255,0.2) 50%, rgba(12,49,37,0.2) 100%);
     z-index: 5;
 }
 
@@ -395,7 +491,7 @@ body, html {
 .cover-glare {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 50%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 50%);
     pointer-events: none;
 }
 
@@ -405,7 +501,7 @@ body, html {
     left: 5%;
     width: 90%;
     height: 30px;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
+    background: radial-gradient(ellipse at center, rgba(12, 49, 37, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
     filter: blur(10px);
     z-index: -1;
 }
@@ -427,7 +523,7 @@ kbd {
     border-radius: 4px;
     font-family: inherit;
     font-weight: 600;
-    color: var(--color-text-muted);
+    color: var(--color-green-deep);
 }
 
 .separator {
@@ -447,7 +543,7 @@ kbd {
     top: 20px;
     left: 30px;
     right: 30px;
-    height: 56px;
+    height: 58px;
     background: var(--glass-bg);
     border: var(--glass-border);
     backdrop-filter: var(--glass-blur);
@@ -472,7 +568,7 @@ kbd {
     height: 38px;
     padding: 0 12px;
     border-radius: 10px;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -483,8 +579,8 @@ kbd {
 }
 
 .tb-icon-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--color-terracotta);
+    background: rgba(12, 49, 37, 0.06);
+    color: var(--color-gold);
 }
 
 .tb-divider {
@@ -501,15 +597,16 @@ kbd {
 
 .meta-title {
     font-family: var(--font-serif);
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     line-height: 1;
+    color: var(--color-green-deep);
 }
 
 .meta-issue {
     font-size: 0.65rem;
     font-weight: 700;
-    color: var(--color-text-light);
+    color: var(--color-gold);
     letter-spacing: 0.5px;
 }
 
@@ -518,7 +615,7 @@ kbd {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0, 0, 0, 0.04);
+    background: rgba(12, 49, 37, 0.05);
     padding: 4px 12px;
     border-radius: 8px;
     font-size: 0.85rem;
@@ -531,20 +628,19 @@ kbd {
 
 #input-page-number {
     width: 36px;
-    border: none;
+    border: 1px solid var(--color-border-subtle);
     background: white;
     text-align: center;
     font-family: inherit;
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
     border-radius: 4px;
     padding: 2px 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 #input-page-number:focus {
-    outline: 2px solid var(--color-terracotta);
+    outline: 2px solid var(--color-gold);
 }
 
 .pill-total {
@@ -558,7 +654,7 @@ kbd {
     left: 20px;
     right: 20px;
     height: 3px;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(12, 49, 37, 0.06);
     border-radius: 3px;
     overflow: hidden;
 }
@@ -566,7 +662,7 @@ kbd {
 .progress-fill {
     height: 100%;
     width: 0%;
-    background: var(--color-terracotta);
+    background: var(--color-gold);
     transition: width 0.3s ease;
 }
 
@@ -594,7 +690,6 @@ kbd {
     transition: transform 0.3s ease;
 }
 
-/* StPageFlip Canvas Customizations */
 .stpageflip-page {
     background-color: #ffffff;
 }
@@ -619,7 +714,7 @@ kbd {
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(18, 17, 16, 0.4);
+    background: rgba(12, 49, 37, 0.45);
     backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
@@ -656,8 +751,8 @@ kbd {
 }
 
 .modal-card-toc {
-    max-width: 1000px;
-    height: 80vh;
+    max-width: 1020px;
+    height: 82vh;
 }
 
 .modal-card-sm {
@@ -675,7 +770,7 @@ kbd {
 .modal-header h2 {
     font-family: var(--font-serif);
     font-size: 1.8rem;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
 }
 
 .modal-header .subtitle {
@@ -694,10 +789,10 @@ kbd {
 }
 
 .btn-close-modal:hover {
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
 }
 
-/* Search Specifics */
+/* Search Input Drawer */
 .search-input-wrapper {
     display: flex;
     align-items: center;
@@ -716,11 +811,11 @@ kbd {
     width: 100%;
     font-family: inherit;
     font-size: 1rem;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
 }
 
 .search-icon {
-    color: var(--color-text-light);
+    color: var(--color-gold);
 }
 
 .btn-clear {
@@ -735,7 +830,7 @@ kbd {
     overflow-y: auto;
 }
 
-/* Search Results List */
+/* Search Cards */
 .results-list {
     display: flex;
     flex-direction: column;
@@ -752,29 +847,30 @@ kbd {
 }
 
 .search-result-item:hover {
-    border-color: var(--color-terracotta);
+    border-color: var(--color-gold);
     transform: translateX(4px);
 }
 
 .result-page-tag {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--color-terracotta);
+    color: var(--color-gold);
     letter-spacing: 1px;
 }
 
 .result-snippet {
     font-size: 0.95rem;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
     margin-top: 6px;
     line-height: 1.5;
 }
 
 .result-snippet mark {
-    background: var(--color-gold-light);
-    color: var(--color-gold);
+    background: var(--color-gold-subtle);
+    color: var(--color-green-deep);
     font-weight: 700;
-    padding: 0 2px;
+    padding: 0 4px;
+    border-radius: 2px;
 }
 
 .search-empty-state {
@@ -786,9 +882,10 @@ kbd {
 .search-empty-state i {
     font-size: 2.5rem;
     margin-bottom: 12px;
+    color: var(--color-gold);
 }
 
-/* TOC Grid Specifics */
+/* Redesigned Premium TOC Grid */
 .toc-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -798,17 +895,18 @@ kbd {
 .toc-card {
     background: white;
     border: 1px solid var(--color-border-subtle);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 12px;
     cursor: pointer;
     transition: var(--transition-smooth);
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-shadow: var(--shadow-soft);
 }
 
 .toc-card:hover {
-    border-color: var(--color-terracotta);
+    border-color: var(--color-gold);
     transform: translateY(-4px);
     box-shadow: var(--shadow-medium);
 }
@@ -817,7 +915,7 @@ kbd {
     width: 100%;
     aspect-ratio: 1 / 1.41;
     background: var(--color-bg-surface);
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
     margin-bottom: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -832,7 +930,7 @@ kbd {
 .toc-page-label {
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--color-text-main);
+    color: var(--color-green-deep);
 }
 
 /* Shortcuts List */
@@ -855,8 +953,9 @@ kbd {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background: var(--color-text-main);
+    background: var(--color-green-deep);
     color: white;
+    border: 1px solid var(--color-gold);
     padding: 14px 24px;
     border-radius: 12px;
     font-size: 0.88rem;
@@ -867,6 +966,10 @@ kbd {
     box-shadow: var(--shadow-medium);
     z-index: 200;
     transition: transform 0.3s var(--ease-out-expo), opacity 0.3s ease;
+}
+
+.toast-card .toast-icon {
+    color: var(--color-gold);
 }
 
 .toast-card.hidden {
@@ -888,7 +991,7 @@ kbd {
         align-items: center;
     }
     .hero-title {
-        font-size: 4rem;
+        font-size: 4.5rem;
     }
     .hero-cover-container {
         order: -1;
@@ -904,7 +1007,7 @@ kbd {
         padding: 20px;
     }
     .hero-title {
-        font-size: 3rem;
+        font-size: 3.2rem;
     }
     .magazine-stats-grid {
         grid-template-columns: repeat(2, 1fr);
