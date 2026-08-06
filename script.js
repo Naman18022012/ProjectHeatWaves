@@ -1,44 +1,112 @@
 /* ==========================================================================
-   PROJECT HEAT WAVES (NEWSLETTER) — ENGINE & INTERACTIVE CONTROLLER
+   PROJECT HEAT WAVES — DIGITAL MAGAZINE ENGINE (STANDALONE)
    ========================================================================== */
 
-// Global State
+// 1. EDITORIAL CONTENT DATABASE (Zero external PDF required)
+const MAGAZINE_PAGES = [
+    {
+        pageNumber: 1,
+        title: "PROJECT HEAT WAVES",
+        category: "COVER ISSUE • 2026",
+        headline: "ATHLETIC VELOCITY & HYPER PERFORMANCE",
+        body: "Official digital issue covering sports science, biomechanics, recovery protocols, and tactical operational analytics.",
+        stats: [
+            { label: "VELOCITY", value: "+38%" },
+            { label: "AGILITY", value: "99.4%" },
+            { label: "EFFICIENCY", value: "MAX" }
+        ],
+        themeColor: "#ff2a44"
+    },
+    {
+        pageNumber: 2,
+        title: "TABLE OF CONTENTS",
+        category: "EDITORIAL INDEX",
+        headline: "INSIDE THIS EDITION",
+        body: "01. Velocity Engine Breakdown\n02. Biomechanics & Tactical Training\n03. Recovery Science & Hydration\n04. Performance Analytics & Metrics\n05. Continuous Improvement Strategy",
+        stats: [
+            { label: "ARTICLES", value: "05" },
+            { label: "READ TIME", value: "5 MIN" },
+            { label: "FORMAT", value: "HD CANVAS" }
+        ],
+        themeColor: "#00f0ff"
+    },
+    {
+        pageNumber: 3,
+        title: "VELOCITY ENGINE",
+        category: "TACTICAL BREAKDOWN",
+        headline: "EXPLOSIVE ACCELERATION DYNAMICS",
+        body: "Maximum velocity is achieved through optimized ground contact time, hips extension angle, and stride frequency synchronization. Elite athletes exhibit a stride efficiency rating exceeding 94.2%.",
+        stats: [
+            { label: "CONTACT TIME", value: "0.08s" },
+            { label: "FORCE", value: "4.2kN" },
+            { label: "CADENCE", value: "260 steps/m" }
+        ],
+        themeColor: "#ff2a44"
+    },
+    {
+        pageNumber: 4,
+        title: "BIOMECHANICS",
+        category: "HUMAN KINETICS",
+        headline: "NEUROMUSCULAR EFFICIENCY",
+        body: "Analyzing kinetic chain sequencing during peak deceleration and acceleration transitions. Structural alignment reduces joint shear stress while multiplying output force.",
+        stats: [
+            { label: "STRESS INHIBITION", value: "-24%" },
+            { label: "TORQUE", value: "480 Nm" },
+            { label: "LOAD BAL", value: "50/50" }
+        ],
+        themeColor: "#ffbe0b"
+    },
+    {
+        pageNumber: 5,
+        title: "RECOVERY SCIENCE",
+        category: "PHYSIOLOGY",
+        headline: "HYPERBARIC & CRYOGENIC PROTOCOLS",
+        body: "Targeted cell oxygenation accelerates glycogen replenishment by 300%. Optimal sleep architecture combined with precise electrolyte balance forms the foundation of sustained performance.",
+        stats: [
+            { label: "RECOVERY RATE", value: "2.4x" },
+            { label: "LACTATE FLUSH", value: "< 12m" },
+            { label: "HRV INDEX", value: "115 ms" }
+        ],
+        themeColor: "#00f0ff"
+    },
+    {
+        pageNumber: 6,
+        title: "ANALYTICS SUMMARY",
+        category: "FINAL REVIEW",
+        headline: "CONTINUOUS IMPROVEMENT MODEL",
+        body: "Thank you for reading Project Heat Waves. Apply these operational guidelines to optimize training regimens and achieve peak competitive athletic execution.",
+        stats: [
+            { label: "OVERALL GRADE", value: "A+" },
+            { label: "STATUS", value: "VERIFIED" },
+            { label: "ISSUE", value: "#24 COMPLETE" }
+        ],
+        themeColor: "#ff2a44"
+    }
+];
+
+// 2. APPLICATION STATE
 const STATE = {
-    pdfDoc: null,
-    pdfPath: 'EYP Rubrix.pdf', // Default loaded sample rubric newsletter PDF
     pageFlip: null,
     currentPage: 1,
-    totalPages: 0,
-    zoomScale: 1.0,
-    renderScale: 2.2, // High-DPI render multiplier for crystal-clear readable text
+    totalPages: MAGAZINE_PAGES.length,
     soundEnabled: true,
-    isDarkMode: true,
-    searchIndex: [],
-    audioCtx: null
+    audioCtx: null,
+    isDarkMode: true
 };
 
-// DOM References
+// 3. DOM ELEMENTS
 const DOM = {
-    loadingScreen: document.getElementById('loading-screen'),
-    loadingProgress: document.getElementById('loading-progress'),
-    loadingStatus: document.getElementById('loading-status'),
     heroScreen: document.getElementById('hero-screen'),
     readerScreen: document.getElementById('reader-screen'),
     btnOpenReader: document.getElementById('btn-open-reader'),
     btnHeroContents: document.getElementById('btn-hero-contents'),
     btnBackHero: document.getElementById('btn-back-hero'),
-    pdfUploadInput: document.getElementById('pdf-upload-input'),
-    flipbookViewport: document.getElementById('flipbook-viewport'),
     flipbookWrapper: document.getElementById('flipbook'),
     tbPageStatus: document.getElementById('tb-page-status'),
     tbCurrentPageInput: document.getElementById('tb-current-page-input'),
     tbTotalPagesLabel: document.getElementById('tb-total-pages-label'),
     tbPrevPage: document.getElementById('tb-prev-page'),
     tbNextPage: document.getElementById('tb-next-page'),
-    tbZoomIn: document.getElementById('tb-zoom-in'),
-    tbZoomOut: document.getElementById('tb-zoom-out'),
-    tbZoomReset: document.getElementById('tb-zoom-reset'),
-    tbZoomLevel: document.getElementById('tb-zoom-level'),
     tbToggleToc: document.getElementById('tb-toggle-toc'),
     tbToggleSearch: document.getElementById('tb-toggle-search'),
     tbToggleSound: document.getElementById('tb-toggle-sound'),
@@ -46,7 +114,6 @@ const DOM = {
     tbToggleFullscreen: document.getElementById('tb-toggle-fullscreen'),
     progressBar: document.getElementById('reading-progress-bar'),
     hero3dCard: document.getElementById('hero-3d-card'),
-    heroReadTime: document.getElementById('hero-read-time'),
     tocModal: document.getElementById('toc-modal'),
     tocBackdrop: document.getElementById('toc-backdrop'),
     btnCloseToc: document.getElementById('btn-close-toc'),
@@ -63,372 +130,255 @@ const DOM = {
 // INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    initAudioEngine();
-    initHeroParallax();
+    init3dParallax();
+    initMagazinePages();
     initEventListeners();
-    loadPdfDocument(STATE.pdfPath);
 });
 
-// ==========================================================================
-// REALISTIC PAGE FLIP AUDIO SYNTHESIZER (Web Audio API)
-// Creates an authentic paper rustle without relying on external media files.
-// ==========================================================================
-function initAudioEngine() {
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-}
-
+// Real-time Web Audio Synthesizer for Paper Turning Sound
 function playPageFlipSound() {
     if (!STATE.soundEnabled) return;
-    
     try {
         if (!STATE.audioCtx) {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
             STATE.audioCtx = new AudioContext();
         }
-        if (STATE.audioCtx.state === 'suspended') {
-            STATE.audioCtx.resume();
-        }
+        if (STATE.audioCtx.state === 'suspended') STATE.audioCtx.resume();
 
         const ctx = STATE.audioCtx;
-        const bufferSize = ctx.sampleRate * 0.18; // 180ms paper flip audio duration
+        const bufferSize = ctx.sampleRate * 0.15;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const output = buffer.getChannelData(0);
+        const data = buffer.getChannelData(0);
 
-        // Generate white/pink noise burst representing paper friction
         for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
+            data[i] = Math.random() * 2 - 1;
         }
 
-        const whiteNoise = ctx.createBufferSource();
-        whiteNoise.buffer = buffer;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
 
-        // Bandpass filter to model authentic paper friction resonance
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(1200, ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.15);
-        filter.Q.value = 1.8;
+        filter.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.12);
 
-        // Envelope Gain
-        const gainNode = ctx.createGain();
-        gainNode.gain.setValueAtTime(0.01, ctx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.03);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.17);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.01, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
 
-        whiteNoise.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
 
-        whiteNoise.start();
+        noise.start();
     } catch (e) {
-        console.warn('Audio playback error:', e);
+        console.warn("Audio blocked or unsupported:", e);
     }
 }
 
 // ==========================================================================
-// PDF ENGINE & HIGH-DPI RENDERER
+// CANVAS EDITORIAL PAGE GENERATOR (Ultra High Readability)
 // ==========================================================================
-async function loadPdfDocument(src) {
-    updateLoadingProgress(10, "LOADING PDF DOCUMENT...");
+function drawMagazinePageCanvas(canvas, pageData) {
+    const width = 600;
+    const height = 820;
+
+    canvas.width = width * 2; // HD Retina resolution
+    canvas.height = height * 2;
     
-    try {
-        const loadingTask = pdfjsLib.getDocument(src);
-        loadingTask.onProgress = (data) => {
-            if (data.total > 0) {
-                const percent = Math.round((data.loaded / data.total) * 60);
-                updateLoadingProgress(10 + percent, `LOADING CONTENT... ${percent}%`);
-            }
-        };
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
 
-        STATE.pdfDoc = await loadingTask.promise;
-        STATE.totalPages = STATE.pdfDoc.numPages;
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
 
-        DOM.tbTotalPagesLabel.textContent = `/ ${STATE.totalPages}`;
-        DOM.tbCurrentPageInput.max = STATE.totalPages;
+    // Top Accent Stripe
+    ctx.fillStyle = pageData.themeColor;
+    ctx.fillRect(40, 35, width - 80, 6);
 
-        updateLoadingProgress(75, "INDEXING SEARCH TEXT...");
-        await indexPdfText();
+    // Category Tag
+    ctx.fillStyle = pageData.themeColor;
+    ctx.font = '700 11px "Space Grotesk", sans-serif';
+    ctx.fillText(pageData.category, 40, 65);
 
-        updateLoadingProgress(85, "GENERATING RENDER PAGES...");
-        await buildPageFlipElements();
+    // Main Header Title
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '800 28px "Space Grotesk", sans-serif';
+    ctx.fillText(pageData.title, 40, 100);
 
-        updateLoadingProgress(100, "READY!");
-        setTimeout(() => {
-            DOM.loadingScreen.classList.add('fade-out');
-        }, 400);
+    // Editorial Content Box
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(40, 125, width - 80, 480);
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(40, 125, width - 80, 480);
 
-    } catch (error) {
-        console.error('Error loading PDF:', error);
-        DOM.loadingStatus.textContent = 'ERROR LOADING PDF DOCUMENT';
-        DOM.loadingStatus.style.color = 'var(--accent-fire)';
+    // Article Headline
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '700 18px "Space Grotesk", sans-serif';
+    ctx.fillText(pageData.headline, 60, 165);
+
+    // Divider Line
+    ctx.strokeStyle = pageData.themeColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 180);
+    ctx.lineTo(160, 180);
+    ctx.stroke();
+
+    // Body Copy (Word Wrap)
+    ctx.fillStyle = '#334155';
+    ctx.font = '14px "Inter", sans-serif';
+    
+    const words = pageData.body.split(' ');
+    let line = '';
+    let y = 215;
+    const maxWidth = width - 120;
+    const lineHeight = 22;
+
+    for (let i = 0; i < words.length; i++) {
+        if (words[i].includes('\n')) {
+            const parts = words[i].split('\n');
+            line += parts[0];
+            ctx.fillText(line, 60, y);
+            line = parts[1] + ' ';
+            y += lineHeight * 1.5;
+            continue;
+        }
+        
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && i > 0) {
+            ctx.fillText(line, 60, y);
+            line = words[i] + ' ';
+            y += lineHeight;
+        } else {
+            line = testLine;
+        }
     }
+    ctx.fillText(line, 60, y);
+
+    // Stats Grid Box
+    const statBoxY = 625;
+    const statBoxWidth = (width - 80 - 20) / 3;
+
+    pageData.stats.forEach((stat, idx) => {
+        const x = 40 + idx * (statBoxWidth + 10);
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x, statBoxY, statBoxWidth, 110);
+
+        ctx.fillStyle = pageData.themeColor;
+        ctx.font = '800 20px "Syncopate", sans-serif';
+        ctx.fillText(stat.value, x + 15, statBoxY + 50);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '700 9px "Space Grotesk", sans-serif';
+        ctx.fillText(stat.label, x + 15, statBoxY + 80);
+    });
+
+    // Page Footer
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '700 11px "Space Grotesk", sans-serif';
+    ctx.fillText('PROJECT HEAT WAVES • OFFICIAL EDITION', 40, height - 35);
+    ctx.fillText(`PAGE 0${pageData.pageNumber}`, width - 100, height - 35);
 }
 
-function updateLoadingProgress(percent, text) {
-    DOM.loadingProgress.style.width = `${percent}%`;
-    if (text) DOM.loadingStatus.textContent = text;
-}
-
-// Build crisp render canvas elements for each page
-async function buildPageFlipElements() {
+// Build Flipbook Elements
+function initMagazinePages() {
     DOM.flipbookWrapper.innerHTML = '';
-    
-    // First Page dimensions establish reader ratio
-    const samplePage = await STATE.pdfDoc.getPage(1);
-    const viewport = samplePage.getViewport({ scale: 1.0 });
-    const pageWidth = viewport.width;
-    const pageHeight = viewport.height;
+    DOM.tocGrid.innerHTML = '';
 
-    for (let pageNum = 1; pageNum <= STATE.totalPages; pageNum++) {
+    MAGAZINE_PAGES.forEach((pageData) => {
+        // Build Page Element
         const pageSheet = document.createElement('div');
         pageSheet.className = 'page-sheet';
-        pageSheet.setAttribute('data-page-num', pageNum);
+        pageSheet.setAttribute('data-page-num', pageData.pageNumber);
 
         const canvas = document.createElement('canvas');
+        drawMagazinePageCanvas(canvas, pageData);
         pageSheet.appendChild(canvas);
         DOM.flipbookWrapper.appendChild(pageSheet);
 
-        // High DPI Crisp Rendering
-        await renderPageCanvas(pageNum, canvas);
-    }
+        // Build TOC Thumbnail
+        const thumbCard = document.createElement('div');
+        thumbCard.className = 'thumb-card';
+        thumbCard.addEventListener('click', () => {
+            closeTocModal();
+            if (STATE.pageFlip) {
+                STATE.pageFlip.turnToPage(pageData.pageNumber - 1);
+            }
+        });
 
-    // Initialize PageFlip.js with realistic paper settings
-    if (STATE.pageFlip) {
-        STATE.pageFlip.destroy();
-    }
+        const thumbCanvas = document.createElement('canvas');
+        drawMagazinePageCanvas(thumbCanvas, pageData);
+
+        const thumbMeta = document.createElement('div');
+        thumbMeta.className = 'thumb-meta';
+        thumbMeta.innerHTML = `<span>Page ${pageData.pageNumber}</span><span style="color:${pageData.themeColor}">${pageData.title}</span>`;
+
+        thumbCard.appendChild(thumbCanvas);
+        thumbCard.appendChild(thumbMeta);
+        DOM.tocGrid.appendChild(thumbCard);
+    });
+
+    // Initialize St.PageFlip
+    if (STATE.pageFlip) STATE.pageFlip.destroy();
 
     STATE.pageFlip = new St.PageFlip(DOM.flipbookWrapper, {
-        width: pageWidth,
-        height: pageHeight,
+        width: 600,
+        height: 820,
         size: 'stretch',
         minWidth: 320,
-        maxWidth: 1000,
+        maxWidth: 900,
         minHeight: 420,
-        maxHeight: 1350,
-        maxShadowOpacity: 0.6,
+        maxHeight: 1250,
+        maxShadowOpacity: 0.5,
         showCover: true,
-        mobileScrollSupport: false,
         useMouseEvents: true,
-        flippingTime: 800
+        flippingTime: 700
     });
 
     STATE.pageFlip.loadFromHTML(document.querySelectorAll('.page-sheet'));
 
-    // Flip Event Handlers
     STATE.pageFlip.on('flip', (e) => {
         STATE.currentPage = e.data + 1;
-        updateUIState();
+        updateUI();
         playPageFlipSound();
     });
 }
 
-// High-DPI Crisp Canvas Rendering Engine
-async function renderPageCanvas(pageNum, canvas) {
-    const page = await STATE.pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale: STATE.renderScale });
-    
-    const context = canvas.getContext('2d');
-    canvas.width = Math.floor(viewport.width);
-    canvas.height = Math.floor(viewport.height);
-
-    const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-    };
-
-    await page.render(renderContext).promise;
-}
-
-// Full Text Search Indexer
-async function indexPdfText() {
-    STATE.searchIndex = [];
-    let totalWords = 0;
-
-    for (let i = 1; i <= STATE.totalPages; i++) {
-        const page = await STATE.pdfDoc.getPage(i);
-        const textContent = await page.getTextContent();
-        const text = textContent.items.map(item => item.str).join(' ');
-        
-        totalWords += text.split(/\s+/).length;
-        STATE.searchIndex.push({
-            pageNum: i,
-            text: text
-        });
-    }
-
-    // Calculate Reading Time (Avg 200 wpm)
-    const readTimeMinutes = Math.max(1, Math.ceil(totalWords / 200));
-    DOM.heroReadTime.textContent = `${readTimeMinutes} MIN`;
-}
-
-// ==========================================================================
-// USER INTERFACE CONTROLLER & INTERACTION HANDLERS
-// ==========================================================================
-function updateUIState() {
+function updateUI() {
     DOM.tbPageStatus.textContent = `PAGE ${STATE.currentPage} OF ${STATE.totalPages}`;
     DOM.tbCurrentPageInput.value = STATE.currentPage;
 
-    // Update Progress Indicator
-    const progressPercent = (STATE.currentPage / STATE.totalPages) * 100;
-    DOM.progressBar.style.width = `${progressPercent}%`;
+    const progress = (STATE.currentPage / STATE.totalPages) * 100;
+    DOM.progressBar.style.width = `${progress}%`;
 }
 
-function initEventListeners() {
-    // Reader Navigation Transitions
-    DOM.btnOpenReader.addEventListener('click', openReader);
-    DOM.btnHeroContents.addEventListener('click', () => {
-        openReader();
-        openTocModal();
-    });
-    DOM.btnBackHero.addEventListener('click', closeReader);
-
-    // Custom PDF Upload
-    DOM.pdfUploadInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type === 'application/pdf') {
-            DOM.loadingScreen.classList.remove('fade-out');
-            const fileUrl = URL.createObjectURL(file);
-            loadPdfDocument(fileUrl);
-        }
-    });
-
-    // Navigation Controls
-    DOM.tbPrevPage.addEventListener('click', () => STATE.pageFlip.flipPrev());
-    DOM.tbNextPage.addEventListener('click', () => STATE.pageFlip.flipNext());
-    
-    DOM.tbCurrentPageInput.addEventListener('change', (e) => {
-        let val = parseInt(e.target.value);
-        if (val >= 1 && val <= STATE.totalPages) {
-            STATE.pageFlip.turnToPage(val - 1);
-        }
-    });
-
-    // Zoom Controls
-    DOM.tbZoomIn.addEventListener('click', () => setZoom(STATE.zoomScale + 0.15));
-    DOM.tbZoomOut.addEventListener('click', () => setZoom(STATE.zoomScale - 0.15));
-    DOM.tbZoomReset.addEventListener('click', () => setZoom(1.0));
-
-    // Drawer / TOC Modals
-    DOM.tbToggleToc.addEventListener('click', openTocModal);
-    DOM.btnCloseToc.addEventListener('click', closeTocModal);
-    DOM.tocBackdrop.addEventListener('click', closeTocModal);
-
-    // Search Dialog
-    DOM.tbToggleSearch.addEventListener('click', openSearchModal);
-    DOM.btnCloseSearch.addEventListener('click', closeSearchModal);
-    DOM.searchInput.addEventListener('input', handleSearchInput);
-    DOM.btnClearSearch.addEventListener('click', () => {
-        DOM.searchInput.value = '';
-        handleSearchInput();
-    });
-
-    // Toggles
-    DOM.tbToggleSound.addEventListener('click', () => {
-        STATE.soundEnabled = !STATE.soundEnabled;
-        DOM.tbToggleSound.classList.toggle('active', STATE.soundEnabled);
-    });
-
-    DOM.tbToggleTheme.addEventListener('click', toggleTheme);
-
-    DOM.tbToggleFullscreen.addEventListener('click', toggleFullscreen);
-
-    // Keyboard Shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (DOM.readerScreen.classList.contains('hidden')) return;
-
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-            STATE.pageFlip.flipNext();
-        } else if (e.key === 'ArrowLeft') {
-            STATE.pageFlip.flipPrev();
-        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-            e.preventDefault();
-            openSearchModal();
-        } else if (e.key === 'Escape') {
-            closeSearchModal();
-            closeTocModal();
-        }
-    });
-}
-
-// Mode Transitions
+// Navigation & Screen Control
 function openReader() {
-    DOM.heroScreen.style.display = 'none';
+    DOM.heroScreen.classList.add('hidden');
     DOM.readerScreen.classList.remove('hidden');
-    updateUIState();
+    updateUI();
 }
 
 function closeReader() {
     DOM.readerScreen.classList.add('hidden');
-    DOM.heroScreen.style.display = 'flex';
+    DOM.heroScreen.classList.remove('hidden');
 }
 
-function setZoom(scale) {
-    STATE.zoomScale = Math.min(Math.max(scale, 0.75), 2.0);
-    DOM.flipbookViewport.style.transform = `scale(${STATE.zoomScale})`;
-    DOM.tbZoomLevel.textContent = `${Math.round(STATE.zoomScale * 100)}%`;
-}
-
-function toggleTheme() {
-    STATE.isDarkMode = !STATE.isDarkMode;
-    document.documentElement.setAttribute('data-theme', STATE.isDarkMode ? 'dark' : 'light');
-    DOM.tbToggleTheme.querySelector('i').className = STATE.isDarkMode ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-}
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-    }
-}
-
-// ==========================================================================
-// TOC DRAWER & THUMBNAIL RENDERER
-// ==========================================================================
-async function openTocModal() {
+function openTocModal() {
     DOM.tocModal.classList.remove('hidden');
-    if (DOM.tocGrid.children.length === 0) {
-        await generateThumbnails();
-    }
 }
 
 function closeTocModal() {
     DOM.tocModal.classList.add('hidden');
 }
 
-async function generateThumbnails() {
-    DOM.tocGrid.innerHTML = '';
-
-    for (let pageNum = 1; pageNum <= STATE.totalPages; pageNum++) {
-        const thumbCard = document.createElement('div');
-        thumbCard.className = 'thumb-card';
-        
-        const canvas = document.createElement('canvas');
-        thumbCard.appendChild(canvas);
-
-        const meta = document.createElement('div');
-        meta.className = 'thumb-meta';
-        meta.innerHTML = `<span>Page ${pageNum}</span><i class="fa-solid fa-chevron-right"></i>`;
-        thumbCard.appendChild(meta);
-
-        thumbCard.addEventListener('click', () => {
-            STATE.pageFlip.turnToPage(pageNum - 1);
-            closeTocModal();
-        });
-
-        DOM.tocGrid.appendChild(thumbCard);
-
-        // Render scaled down crisp preview
-        const page = await STATE.pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 0.3 });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    }
-}
-
-// ==========================================================================
-// HIGH-PERFORMANCE SEARCH ENGINE
-// ==========================================================================
 function openSearchModal() {
     DOM.searchModal.showModal();
     DOM.searchInput.focus();
@@ -438,30 +388,25 @@ function closeSearchModal() {
     DOM.searchModal.close();
 }
 
-function handleSearchInput() {
-    const query = DOM.searchInput.value.trim().toLowerCase();
-    DOM.btnClearSearch.classList.toggle('hidden', query.length === 0);
+function handleSearch(query) {
+    const q = query.trim().toLowerCase();
+    DOM.searchResultsContainer.innerHTML = '';
 
-    if (query.length < 2) {
+    if (!q) {
+        DOM.searchResultsCount.textContent = '0 matches found';
         DOM.searchResultsContainer.innerHTML = `
             <div class="search-empty-state">
                 <i class="fa-solid fa-newspaper"></i>
-                <p>Type keywords to search through Project Heat Waves newsletter content.</p>
+                <p>Type keywords to search through the issue.</p>
             </div>`;
-        DOM.searchResultsCount.textContent = '0 matches found';
         return;
     }
 
-    const matches = [];
-    STATE.searchIndex.forEach(item => {
-        const idx = item.text.toLowerCase().indexOf(query);
-        if (idx !== -1) {
-            const start = Math.max(0, idx - 40);
-            const end = Math.min(item.text.length, idx + 80);
-            const snippet = item.text.substring(start, end);
-            matches.push({ pageNum: item.pageNum, snippet: snippet, query: query });
-        }
-    });
+    const matches = MAGAZINE_PAGES.filter(p => 
+        p.title.toLowerCase().includes(q) || 
+        p.body.toLowerCase().includes(q) || 
+        p.headline.toLowerCase().includes(q)
+    );
 
     DOM.searchResultsCount.textContent = `${matches.length} matches found`;
 
@@ -469,45 +414,102 @@ function handleSearchInput() {
         DOM.searchResultsContainer.innerHTML = `
             <div class="search-empty-state">
                 <i class="fa-solid fa-face-frown"></i>
-                <p>No results found for "${query}"</p>
+                <p>No results matching "${query}"</p>
             </div>`;
         return;
     }
 
-    DOM.searchResultsContainer.innerHTML = matches.map(m => {
-        const highlighted = m.snippet.replace(
-            new RegExp(m.query, 'gi'),
-            match => `<mark>${match}</mark>`
-        );
-        return `
-            <div class="search-result-item" onclick="jumpToPage(${m.pageNum})">
-                <div class="search-result-header">
-                    <span>PAGE ${m.pageNum}</span>
-                    <i class="fa-solid fa-arrow-right-long"></i>
-                </div>
-                <div class="search-result-snippet">"...${highlighted}..."</div>
-            </div>`;
-    }).join('');
+    matches.forEach(match => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.innerHTML = `
+            <div class="search-result-header">
+                <span>PAGE ${match.pageNumber} • ${match.title}</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="search-result-snippet">${match.headline}</div>
+        `;
+        item.addEventListener('click', () => {
+            closeSearchModal();
+            STATE.pageFlip.turnToPage(match.pageNumber - 1);
+        });
+        DOM.searchResultsContainer.appendChild(item);
+    });
 }
 
-window.jumpToPage = function(pageNum) {
-    STATE.pageFlip.turnToPage(pageNum - 1);
-    closeSearchModal();
-};
-
-// ==========================================================================
-// HERO 3D PARALLAX INTERACTION
-// ==========================================================================
-function initHeroParallax() {
+// 3D Tilt Effect on Hero Screen
+function init3dParallax() {
     const card = DOM.hero3dCard;
     if (!card) return;
 
     document.addEventListener('mousemove', (e) => {
-        if (DOM.heroScreen.style.display === 'none') return;
+        if (DOM.heroScreen.classList.contains('hidden')) return;
 
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-        
-        card.style.transform = `rotateY(${xAxis - 15}deg) rotateX(${yAxis + 8}deg)`;
+        const x = (window.innerWidth / 2 - e.pageX) / 30;
+        const y = (window.innerHeight / 2 - e.pageY) / 30;
+
+        card.style.transform = `rotateY(${x - 18}deg) rotateX(${y + 8}deg)`;
+    });
+}
+
+// Event Listeners Binding
+function initEventListeners() {
+    DOM.btnOpenReader.addEventListener('click', openReader);
+    DOM.btnHeroContents.addEventListener('click', () => {
+        openReader();
+        openTocModal();
+    });
+    DOM.btnBackHero.addEventListener('click', closeReader);
+
+    // Controls
+    DOM.tbPrevPage.addEventListener('click', () => STATE.pageFlip.flipPrev());
+    DOM.tbNextPage.addEventListener('click', () => STATE.pageFlip.flipNext());
+
+    DOM.tbCurrentPageInput.addEventListener('change', (e) => {
+        const page = parseInt(e.target.value);
+        if (page >= 1 && page <= STATE.totalPages) {
+            STATE.pageFlip.turnToPage(page - 1);
+        }
+    });
+
+    // Modals
+    DOM.tbToggleToc.addEventListener('click', openTocModal);
+    DOM.btnCloseToc.addEventListener('click', closeTocModal);
+    DOM.tocBackdrop.addEventListener('click', closeTocModal);
+
+    DOM.tbToggleSearch.addEventListener('click', openSearchModal);
+    DOM.btnCloseSearch.addEventListener('click', closeSearchModal);
+    DOM.searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+
+    // Audio & Theme Toggles
+    DOM.tbToggleSound.addEventListener('click', () => {
+        STATE.soundEnabled = !STATE.soundEnabled;
+        DOM.tbToggleSound.classList.toggle('active', STATE.soundEnabled);
+    });
+
+    DOM.tbToggleTheme.addEventListener('click', () => {
+        STATE.isDarkMode = !STATE.isDarkMode;
+        document.documentElement.setAttribute('data-theme', STATE.isDarkMode ? 'dark' : 'light');
+        DOM.tbToggleTheme.querySelector('i').className = STATE.isDarkMode ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    });
+
+    DOM.tbToggleFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    });
+
+    // Keyboard Hotkeys
+    document.addEventListener('keydown', (e) => {
+        if (!DOM.readerScreen.classList.contains('hidden')) {
+            if (e.key === 'ArrowLeft') STATE.pageFlip.flipPrev();
+            if (e.key === 'ArrowRight') STATE.pageFlip.flipNext();
+            if (e.key === 'Escape') {
+                closeTocModal();
+                closeSearchModal();
+            }
+        }
     });
 }

@@ -1,11 +1,11 @@
 /* ==========================================================================
-   PROJECT HEAT WAVES (NEWSLETTER) — HIGH CONTRAST SPORTS MAGAZINE STYLESHEET
+   PROJECT HEAT WAVES — HIGH CONTRAST DIGITAL MAGAZINE STYLESHEET
    ========================================================================== */
 
 :root {
     --bg-dark: #08090c;
     --bg-card: #11141c;
-    --bg-glass: rgba(17, 20, 28, 0.85);
+    --bg-glass: rgba(17, 20, 28, 0.88);
     --border-glass: rgba(255, 255, 255, 0.12);
     
     --accent-fire: #ff2a44;
@@ -25,13 +25,12 @@
     --radius-md: 12px;
     --radius-lg: 20px;
     --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="light"] {
     --bg-dark: #eef2f6;
     --bg-card: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.88);
+    --bg-glass: rgba(255, 255, 255, 0.92);
     --border-glass: rgba(0, 0, 0, 0.12);
     --text-primary: #0f172a;
     --text-secondary: #475569;
@@ -64,102 +63,6 @@ body, html {
     background: linear-gradient(90deg, var(--accent-fire), var(--accent-cyan));
     z-index: 9999;
     transition: width 0.2s ease;
-}
-
-/* Loading Overlay */
-.loading-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-dark);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-overlay.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loading-content {
-    text-align: center;
-    max-width: 440px;
-    padding: 2rem;
-}
-
-.badge-tag {
-    font-family: var(--font-heading);
-    font-size: 0.65rem;
-    letter-spacing: 3px;
-    color: var(--accent-fire);
-    border: 1px solid var(--accent-fire);
-    padding: 4px 12px;
-    border-radius: 4px;
-    display: inline-block;
-    margin-bottom: 12px;
-    font-weight: 800;
-}
-
-.glitch-title {
-    font-family: var(--font-heading);
-    font-size: 2.8rem;
-    font-weight: 800;
-    letter-spacing: -1px;
-    background: linear-gradient(180deg, #ffffff 0%, #a0aec0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.loader-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-top: 6px;
-    font-family: var(--font-editorial);
-    letter-spacing: 1px;
-}
-
-.spinner-container {
-    margin: 28px auto;
-}
-
-.sports-spinner {
-    width: 46px;
-    height: 46px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: var(--accent-fire);
-    border-right-color: var(--accent-cyan);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.progress-container {
-    width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    width: 0%;
-    height: 100%;
-    background: var(--accent-fire);
-    transition: width 0.3s ease;
-}
-
-.loading-status-text {
-    font-family: var(--font-editorial);
-    font-size: 0.7rem;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    margin-top: 12px;
 }
 
 /* ==========================================================================
@@ -254,7 +157,8 @@ body, html {
     font-size: 0.45em;
     color: var(--text-secondary);
     display: block;
-    margin-top: 4px;
+    margin-top: 6px;
+    font-family: var(--font-editorial);
 }
 
 .hero-description {
@@ -338,25 +242,7 @@ body, html {
     border-color: var(--text-primary);
 }
 
-.btn-icon-sports {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-glass);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition-fast);
-    color: var(--text-secondary);
-}
-
-.btn-icon-sports:hover {
-    color: var(--text-primary);
-    border-color: var(--text-primary);
-}
-
-/* 3D Magazine Stage */
+/* 3D Magazine Cover Card Stage */
 .hero-cover-stage {
     perspective: 1200px;
     display: flex;
@@ -456,7 +342,7 @@ body, html {
 }
 
 /* ==========================================================================
-   TOP TOOLBAR & READER UI
+   READER CONTAINER & TOOLBAR
    ========================================================================== */
 .reader-container {
     position: fixed;
@@ -556,7 +442,7 @@ body, html {
 }
 
 .page-input-wrapper input {
-    width: 40px;
+    width: 36px;
     background: transparent;
     border: none;
     color: var(--text-primary);
@@ -577,20 +463,6 @@ body, html {
     gap: 6px;
 }
 
-.zoom-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.zoom-label {
-    font-family: var(--font-editorial);
-    font-size: 0.75rem;
-    min-width: 45px;
-    text-align: center;
-    color: var(--text-secondary);
-}
-
 .tb-divider {
     width: 1px;
     height: 20px;
@@ -599,7 +471,7 @@ body, html {
 }
 
 /* ==========================================================================
-   FLIPBOOK & HIGH READABILITY CANVAS
+   FLIPBOOK VIEWPORT & SHEET SHADOWS
    ========================================================================== */
 .flipbook-viewport {
     width: 100%;
@@ -613,7 +485,6 @@ body, html {
 
 .flipbook-wrapper {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75);
-    transition: transform 0.3s ease;
 }
 
 .page-sheet {
@@ -628,40 +499,17 @@ body, html {
     display: block;
 }
 
+/* realistic page crease overlay */
 .page-sheet::after {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.06);
-}
-
-.page-sheet.--left::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 30px;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.18));
-    pointer-events: none;
-    z-index: 5;
-}
-
-.page-sheet.--right::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 30px;
-    height: 100%;
-    background: linear-gradient(-90deg, transparent, rgba(0,0,0,0.18));
-    pointer-events: none;
-    z-index: 5;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.08);
 }
 
 /* ==========================================================================
-   DRAWER / TABLE OF CONTENTS MODAL
+   MODALS & SEARCH
    ========================================================================== */
 .drawer-modal {
     position: fixed;
@@ -685,7 +533,7 @@ body, html {
 .drawer-panel {
     position: relative;
     width: 100%;
-    max-width: 480px;
+    max-width: 440px;
     height: 100%;
     background: var(--bg-card);
     border-left: 1px solid var(--border-glass);
@@ -766,9 +614,7 @@ body, html {
     font-size: 0.75rem;
 }
 
-/* ==========================================================================
-   SEARCH MODAL
-   ========================================================================== */
+/* Search Dialog */
 .search-dialog {
     margin: auto;
     border: 1px solid var(--border-glass);
@@ -777,7 +623,7 @@ body, html {
     color: var(--text-primary);
     padding: 0;
     width: 90%;
-    max-width: 650px;
+    max-width: 600px;
     box-shadow: 0 25px 50px rgba(0,0,0,0.85);
 }
 
@@ -830,7 +676,7 @@ body, html {
 }
 
 .search-results-list {
-    max-height: 380px;
+    max-height: 320px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -866,16 +712,9 @@ body, html {
     line-height: 1.4;
 }
 
-.search-result-snippet mark {
-    background: var(--accent-fire);
-    color: #fff;
-    padding: 0 4px;
-    border-radius: 2px;
-}
-
 .search-empty-state {
     text-align: center;
-    padding: 40px 0;
+    padding: 30px 0;
     color: var(--text-muted);
 }
 
@@ -895,13 +734,9 @@ body, html {
         align-items: center;
     }
 
-    .hero-telemetry-grid {
-        width: 100%;
-    }
-
     .magazine-3d-card {
-        width: 270px;
-        height: 380px;
+        width: 260px;
+        height: 370px;
     }
 
     .top-toolbar {

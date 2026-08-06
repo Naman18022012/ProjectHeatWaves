@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Heat Waves (Newsletter) — Official Digital Issue</title>
+    <title>HEAT WAVES — Digital Sports Magazine</title>
 
-    <!-- Sports Typography: Syncopate, Space Grotesk, Inter -->
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&family=Syncopate:wght@700;800&display=swap" rel="stylesheet">
@@ -16,83 +16,57 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- PDF.js Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
-
-    <!-- PageFlip Engine -->
+    <!-- PageFlip Rendering Engine (No PDF dependency required) -->
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
 <body class="sports-editorial">
 
-    <!-- Top Reading Progress Line -->
+    <!-- Top Reading Progress Indicator -->
     <div id="reading-progress-bar" class="progress-bar-indicator"></div>
 
-    <!-- ==================== LOADING SCREEN ==================== -->
-    <div id="loading-screen" class="loading-overlay">
-        <div class="loading-content">
-            <div class="loader-brand">
-                <span class="badge-tag">SPORTS EDITION</span>
-                <h1 class="glitch-title">HEAT WAVES</h1>
-                <p class="loader-subtitle">PROJECT HEAT WAVES (NEWSLETTER)</p>
-            </div>
-            
-            <div class="spinner-container">
-                <div class="sports-spinner"></div>
-            </div>
-
-            <div class="progress-container">
-                <div id="loading-progress" class="progress-fill"></div>
-            </div>
-            <p id="loading-status" class="loading-status-text">INITIALIZING ENGINE...</p>
-        </div>
-    </div>
-
-    <!-- ==================== HERO LANDING PAGE ==================== -->
+    <!-- ==================== HERO LANDING SCREEN ==================== -->
     <section id="hero-screen" class="hero-container">
         <div class="hero-bg-grid"></div>
         <div class="hero-ambient-glow"></div>
 
         <div class="hero-content-wrapper">
-            <!-- Left Info Column -->
+            <!-- Editorial Meta Column -->
             <div class="hero-editorial-meta">
                 <div class="meta-badge-row">
-                    <span class="meta-badge fire-accent">NEWSLETTER</span>
-                    <span class="meta-badge outline">ISSUE 24 • 2026</span>
+                    <span class="meta-badge fire-accent">OFFICIAL ISSUE</span>
+                    <span class="meta-badge outline">VOL. 24 • 2026</span>
                 </div>
 
                 <h1 class="hero-title">
                     PROJECT<br>
                     <span class="text-highlight">HEAT WAVES</span><br>
-                    <span class="text-sub">(NEWSLETTER)</span>
+                    <span class="text-sub">SPORTS & PERFORMANCE DIGEST</span>
                 </h1>
 
                 <p class="hero-description">
-                    The ultimate athletic performance publication. Packed with high-octane coverage, tactical breakdowns, operational guidelines, and exclusive sports insights.
+                    A 100% client-side digital magazine engine. Zero external files or PDF servers required—powered by native HTML5 dynamic canvas rendering.
                 </p>
 
                 <!-- Telemetry Stats -->
                 <div class="hero-telemetry-grid">
                     <div class="telemetry-item">
-                        <span class="telemetry-label">READ TIME</span>
-                        <span class="telemetry-value" id="hero-read-time">5 MIN</span>
+                        <span class="telemetry-label">EST. READ</span>
+                        <span class="telemetry-value">5 MIN</span>
                     </div>
                     <div class="telemetry-item">
-                        <span class="telemetry-label">QUALITY</span>
-                        <span class="telemetry-value">ULTRA HD</span>
+                        <span class="telemetry-label">RESOLUTION</span>
+                        <span class="telemetry-value">60 FPS</span>
                     </div>
                     <div class="telemetry-item">
-                        <span class="telemetry-label">EDITION</span>
-                        <span class="telemetry-value">PRO SPORTS</span>
+                        <span class="telemetry-label">SOURCE</span>
+                        <span class="telemetry-value">CANVAS</span>
                     </div>
                 </div>
 
                 <!-- Call To Action -->
                 <div class="hero-actions">
                     <button id="btn-open-reader" class="btn-primary-sports">
-                        <span>OPEN MAGAZINE</span>
+                        <span>LAUNCH MAGAZINE</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
@@ -100,29 +74,24 @@
                         <i class="fa-solid fa-list-ul"></i>
                         <span>CONTENTS</span>
                     </button>
-                    
-                    <label for="pdf-upload-input" class="btn-icon-sports" title="Upload custom PDF file">
-                        <i class="fa-solid fa-file-arrow-up"></i>
-                        <input type="file" id="pdf-upload-input" accept="application/pdf" hidden>
-                    </label>
                 </div>
             </div>
 
-            <!-- Right 3D Interactive Magazine Cover -->
+            <!-- 3D Interactive Magazine Cover Preview -->
             <div class="hero-cover-stage">
                 <div id="hero-3d-card" class="magazine-3d-card">
                     <div class="magazine-cover-front">
                         <div class="cover-header">
                             <span class="cover-masthead">HEAT WAVES</span>
-                            <span class="cover-issue-no">VOL. 24</span>
+                            <span class="cover-issue-no">ISSUE 24</span>
                         </div>
                         <div class="cover-artwork">
                             <div class="cover-center-badge"><i class="fa-solid fa-bolt"></i></div>
                             <h2 class="cover-headline">HEAT<br>WAVES</h2>
-                            <p class="cover-subline">Project Heat Waves (Newsletter)</p>
+                            <p class="cover-subline">Peak Athletic Performance Issue</p>
                         </div>
                         <div class="cover-footer">
-                            <span>SPORTS ILLUSTRATED STYLE</span>
+                            <span>STANDALONE EDITION</span>
                             <span>2026 EDITION</span>
                         </div>
                     </div>
@@ -133,56 +102,47 @@
         </div>
     </section>
 
-    <!-- ==================== MAIN READER SCREEN ==================== -->
+    <!-- ==================== MAIN FLIPBOOK READER ==================== -->
     <main id="reader-screen" class="reader-container hidden">
         
-        <!-- Floating Glass Bar -->
+        <!-- Glassmorphism Floating Toolbar -->
         <header class="top-toolbar">
             <div class="toolbar-brand">
-                <button id="btn-back-hero" class="tb-btn" title="Back to Cover">
+                <button id="btn-back-hero" class="tb-btn" title="Back to Hero Cover">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
                 <div class="brand-text">
-                    <span class="tb-title">PROJECT HEAT WAVES (NEWSLETTER)</span>
-                    <span class="tb-subtitle" id="tb-page-status">PAGE 1 OF --</span>
+                    <span class="tb-title">PROJECT HEAT WAVES</span>
+                    <span class="tb-subtitle" id="tb-page-status">PAGE 1 OF 6</span>
                 </div>
             </div>
 
-            <!-- Central Page Controls -->
+            <!-- Central Page Navigation -->
             <div class="toolbar-page-nav">
                 <button id="tb-prev-page" class="tb-btn" title="Previous Page">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <div class="page-input-wrapper">
-                    <input type="number" id="tb-current-page-input" value="1" min="1" aria-label="Page Number">
-                    <span id="tb-total-pages-label">/ --</span>
+                    <input type="number" id="tb-current-page-input" value="1" min="1" max="6" aria-label="Page Number">
+                    <span id="tb-total-pages-label">/ 6</span>
                 </div>
                 <button id="tb-next-page" class="tb-btn" title="Next Page">
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
 
-            <!-- Right Action Tools -->
+            <!-- Action Toolbar Tools -->
             <div class="toolbar-actions">
-                <div class="zoom-group">
-                    <button id="tb-zoom-out" class="tb-btn" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
-                    <span id="tb-zoom-level" class="zoom-label">100%</span>
-                    <button id="tb-zoom-in" class="tb-btn" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
-                    <button id="tb-zoom-reset" class="tb-btn" title="Reset Zoom"><i class="fa-solid fa-rotate-left"></i></button>
-                </div>
-
-                <div class="tb-divider"></div>
-
                 <button id="tb-toggle-toc" class="tb-btn" title="Table of Contents">
                     <i class="fa-solid fa-border-all"></i>
                 </button>
-                <button id="tb-toggle-search" class="tb-btn" title="Search Document (Ctrl+F)">
+                <button id="tb-toggle-search" class="tb-btn" title="Search Document">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
                 
                 <div class="tb-divider"></div>
 
-                <button id="tb-toggle-sound" class="tb-btn active" title="Page Flip Sound Toggle">
+                <button id="tb-toggle-sound" class="tb-btn active" title="Page Flip Sound Effect">
                     <i class="fa-solid fa-volume-high"></i>
                 </button>
                 <button id="tb-toggle-theme" class="tb-btn" title="Toggle Light/Dark Theme">
@@ -197,7 +157,7 @@
         <!-- Flipbook Viewport -->
         <div id="flipbook-viewport" class="flipbook-viewport">
             <div id="flipbook" class="flipbook-wrapper">
-                <!-- Pages injected dynamically -->
+                <!-- Pages generated dynamically by script.js -->
             </div>
         </div>
 
@@ -210,7 +170,7 @@
             <div class="drawer-header">
                 <div>
                     <h2>TABLE OF CONTENTS</h2>
-                    <p>Project Heat Waves (Newsletter) Page Gallery</p>
+                    <p>Click any page thumbnail to navigate</p>
                 </div>
                 <button id="btn-close-toc" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -236,19 +196,19 @@
 
             <div class="search-meta-bar">
                 <span id="search-results-count">0 matches found</span>
-                <span class="search-hint">Press Enter to jump • Esc to close</span>
+                <span class="search-hint">Press Esc to close</span>
             </div>
 
             <div id="search-results-container" class="search-results-list">
                 <div class="search-empty-state">
                     <i class="fa-solid fa-newspaper"></i>
-                    <p>Type keywords to search through Project Heat Waves (Newsletter).</p>
+                    <p>Type keywords like "Velocity", "Tactical", or "Metrics" to search.</p>
                 </div>
             </div>
         </div>
     </dialog>
 
-    <!-- Main Logic -->
+    <!-- Main Logic Script -->
     <script src="script.js"></script>
 </body>
 </html>
