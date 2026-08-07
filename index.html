@@ -3,305 +3,567 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INKSPIRE — Presidency School Digital Magazine</title>
-
-    <!-- Typography: Cormorant Garamond (Editorial Serif) & Plus Jakarta Sans (Modern UI Sans) -->
+    <title>INKSPIRE Cover — Presidency School Digital Newsletter</title>
+    
+    <!-- Editorial Typography Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- FontAwesome 6.5.1 Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Application Stylesheet -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- PDF.js Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-    <!-- StPageFlip (Realistic 3D Page Turn Engine) -->
-    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-</head>
-<body class="theme-presidency">
-
-    <!-- Ambient Background Lighting -->
-    <div class="ambient-background">
-        <div class="ambient-orb orb-presidency-1"></div>
-        <div class="ambient-orb orb-presidency-2"></div>
-        <div class="ambient-orb orb-gold-3"></div>
-        <div class="paper-texture-overlay"></div>
-    </div>
-
-    <!-- Hidden Input for Custom PDF Upload -->
-    <input type="file" id="pdf-file-input" accept="application/pdf" class="sr-only">
-
-    <!-- =================================================================== -->
-    <!-- ELEGANT INITIAL LOADING SCREEN                                      -->
-    <!-- =================================================================== -->
-    <div id="app-loader" class="loader-overlay">
-        <div class="loader-card">
-            <div class="loader-crest">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <div class="loader-brand" id="loader-school-name">PRESIDENCY SCHOOL</div>
-            <div class="loader-title" id="loader-magazine-title">INKSPIRE</div>
-            <p class="loader-subtext">Loading Digital Publication Platform...</p>
-            
-            <div class="loader-progress-container">
-                <div id="loader-progress-bar" class="loader-progress-fill"></div>
-            </div>
-            <div class="loader-spinner"></div>
-        </div>
-    </div>
-
-    <!-- =================================================================== -->
-    <!-- LANDING PAGE / HERO COVER SCREEN                                    -->
-    <!-- =================================================================== -->
-    <section id="landing-screen" class="app-screen screen-active">
+    <style>
+        /* ==========================================================================
+           PRINT-READY A4 COVER STYLESHEET (PRESIDENCY OFFICIAL BRANDING)
+           Standard A4 Ratio: 1 : 1.414 (210mm x 297mm @ 300 DPI)
+           ========================================================================== */
         
-        <!-- Header Brand Nav -->
-        <header class="landing-header">
-            <div class="brand-badge">
-                <span class="badge-dot"></span>
-                <span class="badge-text" id="lbl-header-school">PRESIDENCY SCHOOL</span>
-            </div>
-            <div class="header-actions">
-                <button id="btn-upload-trigger" class="btn-ghost-sm" title="Load Custom PDF">
-                    <i class="fa-solid fa-file-arrow-up"></i> <span>Load PDF</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Hero Layout -->
-        <main class="hero-content-wrapper">
+        :root {
+            --color-blue-deep: #002347;
+            --color-blue-mid: #0a3366;
+            --color-blue-light: #164278;
             
-            <!-- Left Editorial Text Area -->
-            <div class="hero-editorial">
-                <div class="issue-tagline">
-                    <span id="lbl-volume">VOLUME IV</span> • <span id="lbl-issue-date">AUGUST 2026</span>
-                </div>
-                
-                <h1 class="hero-title" id="lbl-main-title">INKSPIRE</h1>
-                
-                <div class="hero-subtitle">
-                    <span id="lbl-sub-1">Official Digital Magazine</span>
-                    <span class="bullet-divider">•</span>
-                    <span id="lbl-sub-2">Presidency School</span>
-                </div>
+            --color-gold-rich: #c5a059;
+            --color-gold-bright: #d4af37;
+            --color-gold-light: #e8d3a7;
+            --color-gold-muted: rgba(197, 160, 89, 0.35);
 
-                <p class="hero-motto" id="lbl-motto">
-                    Inspiring Minds. Celebrating Excellence. Building Tomorrow.
-                </p>
+            --color-paper: #ffffff;
+            --color-white: #ffffff;
+            --color-dark: #070c14;
+            
+            --font-masthead: 'Cormorant Garamond', Georgia, serif;
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
 
-                <!-- Magazine Metadata Metrics Grid -->
-                <div class="magazine-stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-value" id="stat-pages">--</span>
-                        <span class="stat-label">PAGES</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value" id="stat-articles">--</span>
-                        <span class="stat-label">ARTICLES</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value" id="stat-readtime">-- min</span>
-                        <span class="stat-label">READ TIME</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value" id="stat-edition">VOL IV</span>
-                        <span class="stat-label">EDITION</span>
-                    </div>
-                </div>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
 
-                <!-- Primary Control Buttons -->
-                <div class="hero-actions">
-                    <button id="btn-open-magazine" class="btn-primary-luxury">
-                        <i class="fa-solid fa-book-open"></i>
-                        <span>Open Magazine</span>
-                    </button>
-                    <button id="btn-hero-toc" class="btn-secondary-luxury">
-                        <i class="fa-solid fa-list-ul"></i>
-                        <span>Browse Contents</span>
-                    </button>
+        body {
+            background-color: #0b0f19;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            font-family: var(--font-sans);
+        }
+
+        /* A4 Page Canvas Setup */
+        .cover-canvas {
+            position: relative;
+            width: 100%;
+            max-width: 820px;
+            aspect-ratio: 1 / 1.414;
+            background-color: var(--color-paper);
+            color: var(--color-dark);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+        }
+
+        /* Fine Print Outer Border Lines */
+        .cover-frame {
+            position: absolute;
+            inset: 12px;
+            border: 1px solid rgba(0, 35, 71, 0.2);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .cover-inner-frame {
+            position: absolute;
+            inset: 15px;
+            border: 1px solid var(--color-gold-muted);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* ==========================================================================
+           HEADER & MASTHEAD AREA (WITH OFFICIAL LOGO)
+           ========================================================================== */
+        .masthead-container {
+            background-color: var(--color-paper);
+            padding: 18px 36px 12px 36px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .school-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 4px;
+        }
+
+        .school-logo {
+            height: 50px;
+            width: auto;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .school-title-group {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .school-name {
+            font-family: var(--font-sans);
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 3.5px;
+            text-transform: uppercase;
+            color: var(--color-blue-deep);
+            line-height: 1.1;
+        }
+
+        .school-tagline {
+            font-family: var(--font-sans);
+            font-size: 0.56rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--color-gold-rich);
+            margin-top: 2px;
+        }
+
+        .header-rule {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--color-gold-rich) 25%, var(--color-gold-rich) 75%, transparent 100%);
+            margin: 8px auto 8px auto;
+            width: 90%;
+        }
+
+        /* Large Magazine Title */
+        .magazine-title {
+            font-family: var(--font-masthead);
+            font-size: 5.5rem;
+            font-weight: 700;
+            line-height: 0.82;
+            letter-spacing: 12px;
+            color: var(--color-blue-deep);
+            text-transform: uppercase;
+            margin-left: 12px;
+            text-shadow: 0 2px 4px rgba(0, 35, 71, 0.08);
+        }
+
+        .masthead-subhead {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--color-gold-rich);
+            margin-top: 6px;
+        }
+
+        /* Publication Metadata Strip */
+        .pub-details-strip {
+            margin-top: 8px;
+            border-top: 1px solid var(--color-blue-deep);
+            border-bottom: 2px solid var(--color-gold-rich);
+            padding: 5px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: var(--color-blue-deep);
+            background-color: #f0f4f9;
+        }
+
+        .pub-details-strip span {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .pub-details-strip .dot {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background-color: var(--color-gold-rich);
+            border-radius: 50%;
+            margin: 0 8px;
+        }
+
+        /* ==========================================================================
+           MAIN VISUAL & EDITORIAL LAYOUT STAGE (INDIAN STUDENTS FEATURE)
+           ========================================================================== */
+        .editorial-stage {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 28px;
+            background-color: var(--color-blue-deep);
+            overflow: hidden;
+        }
+
+        /* Background Image showing Indian School Students */
+        .hero-image-wrapper {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .hero-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 15%;
+        }
+
+        /* Vignette Overlays for clear text readability */
+        .hero-image-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg, 
+                rgba(0, 35, 71, 0.75) 0%, 
+                rgba(0, 35, 71, 0.25) 35%, 
+                rgba(0, 35, 71, 0.4) 60%, 
+                rgba(0, 35, 71, 0.95) 100%
+            );
+        }
+
+        /* Editorial Content Overlay Layer */
+        .editorial-content-layer {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        /* Top Feature Banner */
+        .feature-story-banner {
+            background: rgba(0, 35, 71, 0.88);
+            backdrop-filter: blur(8px);
+            padding: 14px 18px;
+            border-left: 4px solid var(--color-gold-bright);
+            border-right: 1px solid rgba(197, 160, 89, 0.3);
+            border-top: 1px solid rgba(197, 160, 89, 0.3);
+            border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+            max-width: 580px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-family: var(--font-sans);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--color-gold-bright);
+            margin-bottom: 4px;
+        }
+
+        .feature-headline {
+            font-family: var(--font-display);
+            font-size: 1.85rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--color-white);
+            margin-bottom: 4px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        .feature-deck {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            line-height: 1.4;
+            color: #e2e8f0;
+        }
+
+        /* Bottom Headlines Strip Grid */
+        .bottom-headlines-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .story-card {
+            background: rgba(0, 35, 71, 0.88);
+            backdrop-filter: blur(8px);
+            padding: 12px;
+            border: 1px solid rgba(197, 160, 89, 0.35);
+            border-top: 3px solid var(--color-gold-rich);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+        }
+
+        .story-tag {
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: var(--color-gold-bright);
+            margin-bottom: 3px;
+            display: block;
+        }
+
+        .story-title {
+            font-family: var(--font-display);
+            font-size: 0.98rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-white);
+            margin-bottom: 4px;
+        }
+
+        .story-desc {
+            font-size: 0.68rem;
+            line-height: 1.35;
+            color: #cbd5e1;
+        }
+
+        /* ==========================================================================
+           FOOTER & MOTTO STRIP
+           ========================================================================== */
+        .cover-footer {
+            position: relative;
+            z-index: 10;
+            background-color: var(--color-blue-deep);
+            color: var(--color-white);
+            padding: 10px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 2px solid var(--color-gold-rich);
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .school-motto {
+            font-family: var(--font-masthead);
+            font-size: 1.1rem;
+            font-style: italic;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--color-gold-light);
+        }
+
+        .school-domain {
+            font-family: var(--font-sans);
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .barcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            background-color: var(--color-paper);
+            padding: 3px 6px 2px 6px;
+            border-radius: 2px;
+        }
+
+        .barcode-svg {
+            height: 22px;
+            width: 85px;
+        }
+
+        .barcode-label {
+            font-family: monospace;
+            font-size: 0.52rem;
+            color: var(--color-dark);
+            letter-spacing: 1px;
+        }
+
+        .qr-placeholder {
+            width: 32px;
+            height: 32px;
+            background-color: var(--color-paper);
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-gold-rich);
+        }
+
+        /* High-DPI & Responsive Scaling Adjustments */
+        @media (max-width: 768px) {
+            .cover-canvas {
+                aspect-ratio: auto;
+                height: auto;
+            }
+            .magazine-title {
+                font-size: 3.5rem;
+                letter-spacing: 6px;
+            }
+            .feature-headline {
+                font-size: 1.4rem;
+            }
+            .bottom-headlines-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- A4 Cover Canvas Container -->
+    <div class="cover-canvas">
+        
+        <!-- Classic Fine-Line Print Frames -->
+        <div class="cover-frame"></div>
+        <div class="cover-inner-frame"></div>
+
+        <!-- =================================================================== -->
+        <!-- MASTHEAD & PUBLICATION HEADER                                       -->
+        <!-- =================================================================== -->
+        <header class="masthead-container">
+            <div class="school-header">
+                <!-- Official Presidency Group Logo Image -->
+                <img src="image_721491.png" alt="Presidency School Logo" class="school-logo">
+                <div class="school-title-group">
+                    <span class="school-name">Presidency School</span>
+                    <span class="school-tagline">Gain More Knowledge • Reach Greater Heights</span>
                 </div>
             </div>
 
-            <!-- Right 3D Animated Cover Display -->
-            <div class="hero-cover-container">
-                <div class="magazine-3d-stage">
-                    <div id="cover-3d-card" class="magazine-cover-card">
-                        <div class="cover-spine"></div>
-                        <div class="cover-canvas-wrapper">
-                            <canvas id="hero-cover-canvas"></canvas>
-                            <div class="cover-glare"></div>
-                        </div>
-                    </div>
-                    <div class="cover-shadow"></div>
-                </div>
-            </div>
+            <div class="header-rule"></div>
 
-        </main>
+            <!-- Primary Newsletter Title -->
+            <h1 class="magazine-title">INKSPIRE</h1>
+            
+            <div class="masthead-subhead">By the Students • For the Students</div>
 
-        <!-- Landing Footer -->
-        <footer class="landing-footer">
-            <span>Press <kbd>Space</kbd> or click button to open</span>
-            <span class="separator">•</span>
-            <span>Presidency School Publishing Platform</span>
-        </footer>
-
-    </section>
-
-    <!-- =================================================================== -->
-    <!-- READER APPLICATION SCREEN                                           -->
-    <!-- =================================================================== -->
-    <section id="reader-screen" class="app-screen screen-hidden">
-
-        <!-- Top Floating Glass Toolbar -->
-        <header class="reader-top-bar">
-            <div class="toolbar-left">
-                <button id="btn-exit-reader" class="tb-icon-btn" title="Back to Cover (Esc)">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span class="tb-btn-label">Cover</span>
-                </button>
-                <div class="tb-divider"></div>
-                <div class="publication-meta">
-                    <span class="meta-title" id="lbl-reader-school">Presidency School</span>
-                    <span class="meta-issue" id="lbl-reader-title">INKSPIRE — Current Issue</span>
-                </div>
-            </div>
-
-            <!-- Page Control Center -->
-            <div class="toolbar-center">
-                <button id="btn-prev-page" class="tb-icon-btn" title="Previous Page (←)">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-
-                <div class="page-selector-pill">
-                    <span class="pill-label">Page</span>
-                    <input type="number" id="input-page-number" min="1" value="1">
-                    <span class="pill-total" id="lbl-total-pages">of --</span>
-                </div>
-
-                <button id="btn-next-page" class="tb-icon-btn" title="Next Page (→)">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-
-            <!-- Tools & Views -->
-            <div class="toolbar-right">
-                <button id="btn-search-trigger" class="tb-icon-btn" title="Search Document (S or Cmd+F)">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span class="tb-btn-label">Search</span>
-                </button>
-                <button id="btn-toc-trigger" class="tb-icon-btn" title="Table of Contents (T)">
-                    <i class="fa-solid fa-table-cells"></i>
-                    <span class="tb-btn-label">Contents</span>
-                </button>
-                <div class="tb-divider"></div>
-                <button id="btn-shortcuts-trigger" class="tb-icon-btn" title="Keyboard Shortcuts (?)">
-                    <i class="fa-solid fa-keyboard"></i>
-                </button>
-                <button id="btn-fullscreen-toggle" class="tb-icon-btn" title="Toggle Fullscreen (F)">
-                    <i class="fa-solid fa-expand"></i>
-                </button>
-            </div>
-
-            <!-- Reading Progress Bar -->
-            <div class="reading-progress-track">
-                <div id="reading-progress-fill" class="progress-fill"></div>
+            <!-- Publication Metadata Line -->
+            <div class="pub-details-strip">
+                <span>Official Digital Newsletter</span>
+                <span>Volume IV <span class="dot"></span> Issue 01</span>
+                <span>August 2026</span>
             </div>
         </header>
 
-        <!-- Main Flipbook Viewport Container -->
-        <main class="reader-viewport">
-            <div class="flipbook-outer-stage">
-                <div id="flipbook-wrapper" class="flipbook-wrapper"></div>
+        <!-- =================================================================== -->
+        <!-- MAIN EDITORIAL COVER STAGE WITH INDIAN STUDENTS PHOTO               -->
+        <!-- =================================================================== -->
+        <main class="editorial-stage">
+
+            <!-- High-resolution photography of Indian school students in classroom setting -->
+            <div class="hero-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1600&auto=format&fit=crop" alt="Indian School Students Collaborating in Classroom">
             </div>
+
+            <div class="editorial-content-layer">
+                
+                <!-- Top Main Feature Story Banner -->
+                <div class="feature-story-banner">
+                    <span class="section-tag">Student Leadership Edition</span>
+                    <h2 class="feature-headline">By the Students, For the Students</h2>
+                    <p class="feature-deck">Introducing our 2026 Editorial Board and Student Council—leading through innovation, creative expression, and scholastic excellence across all Presidency campuses.</p>
+                </div>
+
+                <!-- Bottom 3 Story Cards -->
+                <div class="bottom-headlines-grid">
+                    
+                    <article class="story-card">
+                        <span class="story-tag">Campus Voice</span>
+                        <h3 class="story-title">Council Highlights</h3>
+                        <p class="story-desc">Student leaders launch new peer mentorship & STEM clubs.</p>
+                    </article>
+
+                    <article class="story-card">
+                        <span class="story-tag">Achievements</span>
+                        <h3 class="story-title">Olympiad Laureates</h3>
+                        <p class="story-desc">Presidency scholars win top ranks in National Math Contest.</p>
+                    </article>
+
+                    <article class="story-card">
+                        <span class="story-tag">Creative Corner</span>
+                        <h3 class="story-title">Ink & Expressions</h3>
+                        <p class="story-desc">Original poetry and fine arts gallery from middle & senior school.</p>
+                    </article>
+
+                </div>
+
+            </div>
+
         </main>
 
-        <!-- Bottom Ambient Status Bar -->
-        <footer class="reader-bottom-bar">
-            <div class="status-left">
-                <span id="lbl-current-spread">Interactive Spread Mode</span>
+        <!-- =================================================================== -->
+        <!-- EDITORIAL FOOTER & PUBLICATION BARCODE                              -->
+        <!-- =================================================================== -->
+        <footer class="cover-footer">
+            <div class="footer-left">
+                <div class="school-motto">"By the Students, For the Students"</div>
+                <div class="school-domain">www.presidencyschool.edu.in</div>
             </div>
-            <div class="status-right">
-                <span>Use Arrow keys or Drag corners to flip pages</span>
+
+            <div class="footer-right">
+                <!-- QR Code Placeholder -->
+                <div class="qr-placeholder" title="Scan to read digital issue">
+                    <svg viewBox="0 0 24 24" fill="#002347" width="100%" height="100%">
+                        <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm11-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm13-2h2v2h-2v-2zm-4 0h2v4h-2v-4zm2 4h2v2h-2v-2zm2-2h2v4h-2v-4zm2 2h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z"/>
+                    </svg>
+                </div>
+
+                <!-- ISSN / Barcode SVG Graphic -->
+                <div class="barcode-container">
+                    <svg class="barcode-svg" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="5" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="8" y="0" width="4" height="30" fill="#070c14"/>
+                        <rect x="14" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="18" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="22" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="27" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="31" y="0" width="5" height="30" fill="#070c14"/>
+                        <rect x="38" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="41" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="46" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="50" y="0" width="4" height="30" fill="#070c14"/>
+                        <rect x="56" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="60" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="65" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="70" y="0" width="5" height="30" fill="#070c14"/>
+                        <rect x="77" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="80" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="85" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="90" y="0" width="4" height="30" fill="#070c14"/>
+                        <rect x="96" y="0" width="1" height="30" fill="#070c14"/>
+                        <rect x="100" y="0" width="3" height="30" fill="#070c14"/>
+                        <rect x="105" y="0" width="2" height="30" fill="#070c14"/>
+                        <rect x="110" y="0" width="4" height="30" fill="#070c14"/>
+                        <rect x="116" y="0" width="2" height="30" fill="#070c14"/>
+                    </svg>
+                    <span class="barcode-label">ISSN 2684-1029</span>
+                </div>
             </div>
         </footer>
 
-    </section>
-
-    <!-- =================================================================== -->
-    <!-- OVERLAY MODALS                                                      -->
-    <!-- =================================================================== -->
-
-    <!-- Search Modal Window -->
-    <div id="modal-search" class="modal-overlay hidden">
-        <div class="modal-card modal-card-search">
-            <div class="modal-header">
-                <div class="search-input-wrapper">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Search articles, topics, or keywords..." autofocus>
-                    <button id="btn-clear-search" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <button id="btn-close-search" class="btn-close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="search-results-container" class="results-list">
-                    <div class="search-empty-state">
-                        <i class="fa-solid fa-compass"></i>
-                        <p>Type above to search across all pages of INKSPIRE.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Table of Contents Modal Grid -->
-    <div id="modal-toc" class="modal-overlay hidden">
-        <div class="modal-card modal-card-toc">
-            <div class="modal-header">
-                <div>
-                    <h2>Table of Contents</h2>
-                    <p class="subtitle">Select any page thumbnail to jump directly to that page spread.</p>
-                </div>
-                <button id="btn-close-toc" class="btn-close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="toc-grid-container" class="toc-grid">
-                    <!-- Dynamic Page Thumbnails generated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="modal-shortcuts" class="modal-overlay hidden">
-        <div class="modal-card modal-card-sm">
-            <div class="modal-header">
-                <h2>Keyboard Shortcuts</h2>
-                <button id="btn-close-shortcuts" class="btn-close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="shortcuts-list">
-                    <div class="shortcut-row"><span class="shortcut-desc">Next Page</span><kbd>→</kbd> or <kbd>Space</kbd></div>
-                    <div class="shortcut-row"><span class="shortcut-desc">Previous Page</span><kbd>←</kbd></div>
-                    <div class="shortcut-row"><span class="shortcut-desc">Open Search</span><kbd>S</kbd> or <kbd>Cmd+F</kbd></div>
-                    <div class="shortcut-row"><span class="shortcut-desc">Table of Contents</span><kbd>T</kbd></div>
-                    <div class="shortcut-row"><span class="shortcut-desc">Toggle Fullscreen</span><kbd>F</kbd></div>
-                    <div class="shortcut-row"><span class="shortcut-desc">Close / Exit</span><kbd>Esc</kbd></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="toast-card hidden">
-        <i class="fa-solid fa-circle-check toast-icon"></i>
-        <span id="toast-message">Notification message</span>
-    </div>
-
-    <!-- Main Logic Script -->
-    <script src="script.js"></script>
 </body>
 </html>
